@@ -564,10 +564,9 @@ final class CarbAbsorptionViewController: ChartsTableViewController, Identifiabl
         deviceManager.loopManager.addCarbEntryAndRecommendBolus(updatedFPUEntry, replacing: editFPUVC.originalCarbEntry) { (result) in
             DispatchQueue.main.async {
                 switch result {
-                case .success(let recommendation):
-                    if self.active && self.visible, let bolus = recommendation?.amount, bolus > 0 {
-                        self.performSegue(withIdentifier: BolusViewController.className, sender: recommendation)
-                    }
+                case .success:
+                    // Never give bolus for fat and protein.
+                    print("Not recommending bolus for fat or protein.")
                 case .failure(let error):
                     // Ignore bolus wizard errors
                     if error is CarbStore.CarbStoreError {
