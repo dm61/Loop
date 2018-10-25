@@ -22,7 +22,7 @@ final class FPURatioTableViewController: TextFieldTableViewController {
         
         placeholder = NSLocalizedString("Enter FPU Ratio", comment: "The placeholder text instructing users to enter an FPU Ratio")
         keyboardType = .decimalPad
-        contextHelp = NSLocalizedString("Fat-Protein Units are normally based on Fat + Protein calories / 100. Loop will provide fewer equivilant carbohydrates and insulin for fat and protein if this value is larger. Values from 100-150 are typical.", comment: "Explanation of FPU Ratio")
+        contextHelp = NSLocalizedString("Fat-Protein Units are normally based on Fat + Protein calories / 100. The nominal value is 100, and Loop will provide fewer equivilant carbohydrates and insulin for fat and protein if this value is larger, or more if this valye is smaller.", comment: "Explanation of FPU Ratio")
         
         if let fpuRatioVal = fpuRatioVal {
             value = String(Int(fpuRatioVal)) // Don't show decimal.
