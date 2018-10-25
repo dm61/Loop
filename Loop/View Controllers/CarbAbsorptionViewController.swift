@@ -513,15 +513,6 @@ final class CarbAbsorptionViewController: ChartsTableViewController, Identifiabl
     ///
     /// - parameter segue: The unwind segue
     /// RSS - This triggers when you edit an existing carb value and hit save.
-    /*
- @IBAction func unwindFromEditing(_ segue: UIStoryboardSegue) {
- guard let editVC = segue.source as? CarbEntryEditViewController,
- let updatedEntry = editVC.updatedCarbEntry
- else {
- print ("No change was made to carbs...")
- //     //return
- }
- */
     
     @IBAction func unwindFromEditing(_ segue: UIStoryboardSegue) {
         guard let editVC = segue.source as? CarbEntryEditViewController

@@ -13,7 +13,6 @@ import UIKit
 import LoopKitUI
 import HealthKit
 
-
 final class FPURatioTableViewController: TextFieldTableViewController {
     
     init(fpuRatioVal: Double?) {
