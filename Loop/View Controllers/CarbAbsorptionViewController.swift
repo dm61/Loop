@@ -529,7 +529,6 @@ final class CarbAbsorptionViewController: ChartsTableViewController, Identifiabl
                     }
                 }
             }
-        
             deviceManager.loopManager.addCarbEntryAndRecommendBolus(updatedEntry, replacing: editVC.originalCarbEntry) { (result) in
                 DispatchQueue.main.async {
                     switch result {
@@ -555,10 +554,10 @@ final class CarbAbsorptionViewController: ChartsTableViewController, Identifiabl
         
         editFPUVC.FPCaloriesRatio = deviceManager.loopManager.settings.fpuRatio ?? 100.0
         editFPUVC.onsetDelay = deviceManager.loopManager.settings.fpuDelay ?? 60.0
-        
+
         guard let updatedFPUEntry = editFPUVC.updatedFPCarbEntry
             else {
-                return // Return if no change to fat and protein.
+                return
         }
     
         deviceManager.loopManager.addCarbEntryAndRecommendBolus(updatedFPUEntry, replacing: editFPUVC.originalCarbEntry) { (result) in

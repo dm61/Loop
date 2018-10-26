@@ -915,7 +915,6 @@ final class StatusTableViewController: ChartsTableViewController {
                 }
             }
         }
-//=======
 //>>>>>>> rsilvers FPU modifications
         deviceManager.loopManager.addCarbEntryAndRecommendBolus(updatedEntry) { (result) -> Void in
             DispatchQueue.main.async {
