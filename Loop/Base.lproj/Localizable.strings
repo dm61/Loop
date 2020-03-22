@@ -249,6 +249,7 @@
 /* The error message when invalid data was encountered. (1: details of invalid data) */
 "Invalid data: %1$@" = "Invalid data: %1$@";
 
+
 /* The title text for the issue report cell */
 "Issue Report" = "Issue Report";
 
