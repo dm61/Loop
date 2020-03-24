@@ -1009,6 +1009,10 @@ extension LoopDataManager {
         if inputs.contains(.retrospection) {
             effects.append(retrospectiveGlucoseEffect)
         }
+        
+        if inputs.contains(.suspendInsulinDelivery) {
+            effects.append(suspendInsulinDeliveryEffect)
+        }
 
         var prediction = LoopMath.predictGlucose(startingAt: glucose, momentum: momentum, effects: effects)
 
