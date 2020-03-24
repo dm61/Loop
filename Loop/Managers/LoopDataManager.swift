@@ -216,7 +216,6 @@ final class LoopDataManager {
 
     private var suspendInsulinDeliveryEffect: [GlucoseEffect] = []
 
-
     fileprivate var predictedGlucose: [PredictedGlucoseValue]? {
         didSet {
             recommendedDose = nil
@@ -1174,10 +1173,10 @@ extension LoopDataManager {
                 suspendInsulinDeliveryEffect = []
                 throw LoopError.configurationError(.generalSettings)
         }
-
+        
         let insulinActionDuration = insulinModel.effectDuration
 
-        // use the new LoopKit method tempBasalGlucoseEffects to generate zero temp effects
+        // generate effect of suspending insulin delivery by setting temp basal rate to zero
         let startZeroTempDose = Date()
         let endZeroTempDose = startZeroTempDose.addingTimeInterval(insulinActionDuration)
         let zeroTemp = DoseEntry(type: .tempBasal, startDate: startZeroTempDose, endDate: endZeroTempDose, value: 0.0, unit: DoseUnit.unitsPerHour)
@@ -1185,7 +1184,7 @@ extension LoopDataManager {
 
     }
 
-    /// Generates a fraction of glucose effect of zero temping
+    /// Generates a fraction of glucose effect 
     ///
     private func effectFraction(glucoseEffect: [GlucoseEffect], fraction: Double) -> [GlucoseEffect] {
         var fractionalEffect: [GlucoseEffect] = []
@@ -1718,6 +1717,7 @@ extension LoopDataManager {
                 "glucoseMomentumEffect: \(manager.glucoseMomentumEffect ?? [])",
                 "",
                 "retrospectiveGlucoseEffect: \(manager.retrospectiveGlucoseEffect)",
+                "",
                 "suspendInsulinDeliveryEffect: \(manager.suspendInsulinDeliveryEffect)",
                 "",
                 "recommendedTempBasal: \(String(describing: state.recommendedAutomaticDose))",
