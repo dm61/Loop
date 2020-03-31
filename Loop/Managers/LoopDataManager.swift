@@ -215,6 +215,8 @@ final class LoopDataManager {
     private var retrospectiveGlucoseDiscrepanciesSummed: [GlucoseChange]?
 
     private var suspendInsulinDeliveryEffect: [GlucoseEffect] = []
+    
+    private var fractionalSuspendInsulinDeliveryEffect: [GlucoseEffect] = []
 
     fileprivate var predictedGlucose: [PredictedGlucoseValue]? {
         didSet {
@@ -1012,6 +1014,10 @@ extension LoopDataManager {
         if inputs.contains(.suspendInsulinDelivery) {
             effects.append(suspendInsulinDeliveryEffect)
         }
+        
+        if inputs.contains(.fractionalSuspendInsulinDelivery) {
+            effects.append(fractionalSuspendInsulinDeliveryEffect)
+        }
 
         var prediction = LoopMath.predictGlucose(startingAt: glucose, momentum: momentum, effects: effects)
 
@@ -1184,12 +1190,17 @@ extension LoopDataManager {
 
     }
 
-    /// Generates a fraction of glucose effect 
+    /// Generates a fraction of glucose effect
     ///
-    private func effectFraction(glucoseEffect: [GlucoseEffect], fraction: Double) -> [GlucoseEffect] {
+    private func fractionOfEffect(glucoseEffect: [GlucoseEffect], fraction: Double) -> [GlucoseEffect] {
         var fractionalEffect: [GlucoseEffect] = []
+        guard let initialEffectValue = glucoseEffect.first?.quantity.doubleValue(for: .milligramsPerDeciliter) else {
+            return fractionalEffect
+        }
         for effect in glucoseEffect {
-            let scaledEffect = GlucoseEffect(startDate: effect.startDate, quantity: HKQuantity(unit: .milligramsPerDeciliter, doubleValue: fraction * effect.quantity.doubleValue(for: .milligramsPerDeciliter)))
+            let effectValue = effect.quantity.doubleValue(for: .milligramsPerDeciliter)
+            let scaledEffectValue = initialEffectValue + fraction * (effectValue - initialEffectValue)
+            let scaledEffect = GlucoseEffect(startDate: effect.startDate, quantity: HKQuantity(unit: .milligramsPerDeciliter, doubleValue: scaledEffectValue))
             fractionalEffect.append(scaledEffect)
         }
         return fractionalEffect
@@ -1240,7 +1251,28 @@ extension LoopDataManager {
             self.predictedGlucose = nil
             throw LoopError.missingDataError(.insulinEffect)
         }
-
+        
+        // dm61 super correction effect calculation
+        let currentGlucoseValue = glucose.quantity.doubleValue(for: .milligramsPerDeciliter)
+        let superCorrectionLowThreshold: Double = 100
+        let superCorrectionHighThreshold: Double = 150
+        let maximumSuspendDeliveryFraction = 0.5
+        var suspendDeliveryFraction = 0.0
+        switch currentGlucoseValue {
+        case let glucoseValue where glucoseValue <= superCorrectionLowThreshold:
+            suspendDeliveryFraction = 0.0
+        case let glucoseValue where glucoseValue >= superCorrectionHighThreshold:
+            suspendDeliveryFraction = maximumSuspendDeliveryFraction
+        default:
+            suspendDeliveryFraction = maximumSuspendDeliveryFraction * (currentGlucoseValue - superCorrectionLowThreshold) / (superCorrectionHighThreshold - superCorrectionLowThreshold)
+        }
+        fractionalSuspendInsulinDeliveryEffect = fractionOfEffect(glucoseEffect: suspendInsulinDeliveryEffect, fraction: suspendDeliveryFraction)
+        
+        //var enabledEffects = settings.enabledEffects
+        //if suspendDeliveryFraction > 0.0 {
+        //    enabledEffects.insert(.reduceBasalInsulinDelivery)
+        //}
+ 
         let predictedGlucose = try predictGlucose(using: settings.enabledEffects)
         self.predictedGlucose = predictedGlucose
         let predictedGlucoseIncludingPendingInsulin = try predictGlucose(using: settings.enabledEffects, includingPendingInsulin: true)
@@ -1719,6 +1751,8 @@ extension LoopDataManager {
                 "retrospectiveGlucoseEffect: \(manager.retrospectiveGlucoseEffect)",
                 "",
                 "suspendInsulinDeliveryEffect: \(manager.suspendInsulinDeliveryEffect)",
+                "",
+                "fractionalSuspendInsulinDeliveryEffect: \(manager.fractionalSuspendInsulinDeliveryEffect)",
                 "",
                 "recommendedTempBasal: \(String(describing: state.recommendedAutomaticDose))",
                 "recommendedBolus: \(String(describing: state.recommendedBolus))",
