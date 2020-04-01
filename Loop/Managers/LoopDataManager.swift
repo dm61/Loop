@@ -217,6 +217,10 @@ final class LoopDataManager {
     private var suspendInsulinDeliveryEffect: [GlucoseEffect] = []
     
     private var fractionalSuspendInsulinDeliveryEffect: [GlucoseEffect] = []
+    
+    private var suspendDeliveryFraction: Double = 0.0
+    
+    private var standardBolusDose: Double?
 
     fileprivate var predictedGlucose: [PredictedGlucoseValue]? {
         didSet {
@@ -1294,7 +1298,7 @@ extension LoopDataManager {
         }
         
         
-        // dm61 super correction 
+        // dm61 super correction
         let standardDosingRecommendation: AutomaticDoseRecommendation?
         standardDosingRecommendation = predictedGlucose.recommendedAutomaticDose(
             to: glucoseTargetRange,
@@ -1310,31 +1314,30 @@ extension LoopDataManager {
             rateRounder: rateRounder,
             isBasalRateScheduleOverrideActive: settings.scheduleOverride?.isBasalRateScheduleOverriden(at: startDate) == true
         )
-        if let standardDose = standardDosingRecommendation?.bolusUnits {
-            if standardDose > 0 {
-                // do super correction stuff here
-                let currentGlucoseValue = glucose.quantity.doubleValue(for: .milligramsPerDeciliter)
-                let superCorrectionLowThreshold: Double = 100
-                let superCorrectionHighThreshold: Double = 150
-                let maximumSuspendDeliveryFraction = 0.5
-                var suspendDeliveryFraction = 0.0
-                switch currentGlucoseValue {
-                case let glucoseValue where glucoseValue <= superCorrectionLowThreshold:
-                    suspendDeliveryFraction = 0.0
-                case let glucoseValue where glucoseValue >= superCorrectionHighThreshold:
-                    suspendDeliveryFraction = maximumSuspendDeliveryFraction
-                default:
-                    suspendDeliveryFraction = maximumSuspendDeliveryFraction * (currentGlucoseValue - superCorrectionLowThreshold) / (superCorrectionHighThreshold - superCorrectionLowThreshold)
-                }
-                
+        standardBolusDose = nil
+        if let standardDose = standardDosingRecommendation?.bolusUnits, standardDose > 0.0 {
+            // super correction calculations
+            standardBolusDose = standardDose
+            let currentGlucoseValue = glucose.quantity.doubleValue(for: .milligramsPerDeciliter)
+            let superCorrectionLowThreshold: Double = 100
+            let superCorrectionHighThreshold: Double = 150
+            let maximumSuspendDeliveryFraction = 0.5
+            suspendDeliveryFraction = 0.0
+            switch currentGlucoseValue {
+            case let glucoseValue where glucoseValue <= superCorrectionLowThreshold:
+                suspendDeliveryFraction = 0.0
+            case let glucoseValue where glucoseValue >= superCorrectionHighThreshold:
+                suspendDeliveryFraction = maximumSuspendDeliveryFraction
+            default:
+                suspendDeliveryFraction = maximumSuspendDeliveryFraction * (currentGlucoseValue - superCorrectionLowThreshold) / (superCorrectionHighThreshold - superCorrectionLowThreshold)
+            }
+            
+            if suspendDeliveryFraction > 0.0 {
                 fractionalSuspendInsulinDeliveryEffect = fractionOfEffect(glucoseEffect: suspendInsulinDeliveryEffect, fraction: suspendDeliveryFraction)
-
-                if suspendDeliveryFraction > 0.0 {
-                    var superCorrectionEnabledEffects = settings.enabledEffects
-                    superCorrectionEnabledEffects.insert(.fractionalSuspendInsulinDelivery)
-                    predictedGlucose = try predictGlucose(using: superCorrectionEnabledEffects)
-                    predictedGlucoseIncludingPendingInsulin = try predictGlucose(using: superCorrectionEnabledEffects, includingPendingInsulin: true)
-                }
+                var superCorrectionEnabledEffects = settings.enabledEffects
+                superCorrectionEnabledEffects.insert(.fractionalSuspendInsulinDelivery)
+                predictedGlucose = try predictGlucose(using: superCorrectionEnabledEffects)
+                predictedGlucoseIncludingPendingInsulin = try predictGlucose(using: superCorrectionEnabledEffects, includingPendingInsulin: true)
             }
         }
 
@@ -1772,7 +1775,11 @@ extension LoopDataManager {
                 "",
                 "suspendInsulinDeliveryEffect: \(manager.suspendInsulinDeliveryEffect)",
                 "",
+                "fraction of insulin delivery suspension effect: \(String( manager.suspendDeliveryFraction))",
+                "",
                 "fractionalSuspendInsulinDeliveryEffect: \(manager.fractionalSuspendInsulinDeliveryEffect)",
+                "",
+                "standard bolus dose: \(String(describing: manager.standardBolusDose))",
                 "",
                 "recommendedTempBasal: \(String(describing: state.recommendedAutomaticDose))",
                 "recommendedBolus: \(String(describing: state.recommendedBolus))",
