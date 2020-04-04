@@ -216,7 +216,7 @@ final class LoopDataManager {
 
     private var suspendInsulinDeliveryEffect: [GlucoseEffect] = []
     
-    private var fractionalSuspendInsulinDeliveryEffect: [GlucoseEffect] = []
+    private var partialSuspendInsulinDeliveryEffect: [GlucoseEffect] = []
     
     private var suspendDeliveryFraction: Double = 0.0
     
@@ -1019,8 +1019,8 @@ extension LoopDataManager {
             effects.append(suspendInsulinDeliveryEffect)
         }
         
-        if inputs.contains(.fractionalSuspendInsulinDelivery) {
-            effects.append(fractionalSuspendInsulinDeliveryEffect)
+        if inputs.contains(.partialSuspendInsulinDelivery) {
+            effects.append(partialSuspendInsulinDeliveryEffect)
         }
 
         var prediction = LoopMath.predictGlucose(startingAt: glucose, momentum: momentum, effects: effects)
@@ -1197,17 +1197,17 @@ extension LoopDataManager {
     /// Generates a fraction of glucose effect
     ///
     private func fractionOfEffect(glucoseEffect: [GlucoseEffect], fraction: Double) -> [GlucoseEffect] {
-        var fractionalEffect: [GlucoseEffect] = []
+        var partialEffect: [GlucoseEffect] = []
         guard let initialEffectValue = glucoseEffect.first?.quantity.doubleValue(for: .milligramsPerDeciliter) else {
-            return fractionalEffect
+            return partialEffect
         }
         for effect in glucoseEffect {
             let effectValue = effect.quantity.doubleValue(for: .milligramsPerDeciliter)
-            let scaledEffectValue = initialEffectValue + fraction * (effectValue - initialEffectValue)
-            let scaledEffect = GlucoseEffect(startDate: effect.startDate, quantity: HKQuantity(unit: .milligramsPerDeciliter, doubleValue: scaledEffectValue))
-            fractionalEffect.append(scaledEffect)
+            let partialEffectValue = initialEffectValue + fraction * (effectValue - initialEffectValue)
+            let scaledEffect = GlucoseEffect(startDate: effect.startDate, quantity: HKQuantity(unit: .milligramsPerDeciliter, doubleValue: partialEffectValue))
+            partialEffect.append(scaledEffect)
         }
-        return fractionalEffect
+        return partialEffect
     }
 
     /// Runs the glucose prediction on the latest effect data.
@@ -1321,8 +1321,8 @@ extension LoopDataManager {
         // super correction calculations
         let currentGlucoseValue = glucose.quantity.doubleValue(for: .milligramsPerDeciliter)
         let superCorrectionLowThreshold: Double = 100
-        let superCorrectionHighThreshold: Double = 150
-        let maximumSuspendDeliveryFraction = 0.5
+        let superCorrectionHighThreshold: Double = 180
+        let maximumSuspendDeliveryFraction = 0.8
         suspendDeliveryFraction = 0.0
         switch currentGlucoseValue {
         case let glucoseValue where glucoseValue <= superCorrectionLowThreshold:
@@ -1332,10 +1332,10 @@ extension LoopDataManager {
         default:
             suspendDeliveryFraction = maximumSuspendDeliveryFraction * (currentGlucoseValue - superCorrectionLowThreshold) / (superCorrectionHighThreshold - superCorrectionLowThreshold)
         }
-        if suspendDeliveryFraction > 0.0 {
-            fractionalSuspendInsulinDeliveryEffect = fractionOfEffect(glucoseEffect: suspendInsulinDeliveryEffect, fraction: suspendDeliveryFraction)
+        if suspendDeliveryFraction > 0.0 && settings.dosingStrategy == .automaticBolusSuperCorrection {
+            partialSuspendInsulinDeliveryEffect = fractionOfEffect(glucoseEffect: suspendInsulinDeliveryEffect, fraction: suspendDeliveryFraction)
             var superCorrectionEnabledEffects = settings.enabledEffects
-            superCorrectionEnabledEffects.insert(.fractionalSuspendInsulinDelivery)
+            superCorrectionEnabledEffects.insert(.partialSuspendInsulinDelivery)
             predictedGlucose = try predictGlucose(using: superCorrectionEnabledEffects)
             predictedGlucoseIncludingPendingInsulin = try predictGlucose(using: superCorrectionEnabledEffects, includingPendingInsulin: true)
         }
@@ -1343,7 +1343,7 @@ extension LoopDataManager {
         let dosingRecommendation: AutomaticDoseRecommendation?
 
         switch settings.dosingStrategy {
-        case .automaticBolus:
+        case .automaticBolus, .automaticBolusSuperCorrection:
 
             dosingRecommendation = predictedGlucose.recommendedAutomaticDose(
                 to: glucoseTargetRange,
@@ -1776,7 +1776,7 @@ extension LoopDataManager {
                 "",
                 "fraction of insulin delivery suspension effect: \(String( manager.suspendDeliveryFraction))",
                 "",
-                "fractionalSuspendInsulinDeliveryEffect: \(manager.fractionalSuspendInsulinDeliveryEffect)",
+                "partialSuspendInsulinDeliveryEffect: \(manager.partialSuspendInsulinDeliveryEffect)",
                 "",
                 "standard bolus dose: \(String(describing: manager.standardBolusDose))",
                 "",

@@ -11,6 +11,7 @@ import HealthKit
 public enum DosingStrategy: Int, CaseIterable {
     case tempBasalOnly
     case automaticBolus
+    case automaticBolusSuperCorrection
 }
 
 public extension DosingStrategy {
@@ -20,6 +21,8 @@ public extension DosingStrategy {
             return NSLocalizedString("Temp Basal Only", comment: "Title string for temp basal only dosing strategy")
         case .automaticBolus:
             return NSLocalizedString("Automatic Bolus", comment: "Title string for automatic bolus dosing strategy")
+        case .automaticBolusSuperCorrection:
+            return NSLocalizedString("Super Correction", comment: "Title string for automatic bolus with super correction dosing strategy")
         }
     }
 
@@ -28,7 +31,9 @@ public extension DosingStrategy {
         case .tempBasalOnly:
             return NSLocalizedString("Loop will dose via temp basals, limited by your max temp basal setting.", comment: "Description string for temp basal only dosing strategy")
         case .automaticBolus:
-            return NSLocalizedString("Loop will automatically bolus when bg is predicted to be higher than target range, and will use temp basals when bg is predicted to be lower than target range.", comment: "Description string for automatic bolus dosing strategy")
+            return NSLocalizedString("Loop will automatically bolus when bg is predicted to be higher than correction range, and will use temp basals when bg is predicted to be lower than correction range.", comment: "Description string for automatic bolus dosing strategy")
+        case .automaticBolusSuperCorrection:
+            return NSLocalizedString("Loop will automatically deliver a larger correction bolus when current bg is elevated and when bg, including anticipated partial reduction in basal insulin delivery, is predicted to be higher than correction range.", comment: "Description string for automatic bolus with super correction dosing strategy")
         }
     }
 }
