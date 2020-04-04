@@ -1297,7 +1297,6 @@ extension LoopDataManager {
             lastTempBasal = nil
         }
         
-        
         // dm61 super correction
         let standardDosingRecommendation: AutomaticDoseRecommendation?
         standardDosingRecommendation = predictedGlucose.recommendedAutomaticDose(
@@ -1316,29 +1315,29 @@ extension LoopDataManager {
         )
         standardBolusDose = nil
         if let standardDose = standardDosingRecommendation?.bolusUnits, standardDose > 0.0 {
-            // super correction calculations
             standardBolusDose = standardDose
-            let currentGlucoseValue = glucose.quantity.doubleValue(for: .milligramsPerDeciliter)
-            let superCorrectionLowThreshold: Double = 100
-            let superCorrectionHighThreshold: Double = 150
-            let maximumSuspendDeliveryFraction = 0.5
+        }
+
+        // super correction calculations
+        let currentGlucoseValue = glucose.quantity.doubleValue(for: .milligramsPerDeciliter)
+        let superCorrectionLowThreshold: Double = 100
+        let superCorrectionHighThreshold: Double = 150
+        let maximumSuspendDeliveryFraction = 0.5
+        suspendDeliveryFraction = 0.0
+        switch currentGlucoseValue {
+        case let glucoseValue where glucoseValue <= superCorrectionLowThreshold:
             suspendDeliveryFraction = 0.0
-            switch currentGlucoseValue {
-            case let glucoseValue where glucoseValue <= superCorrectionLowThreshold:
-                suspendDeliveryFraction = 0.0
-            case let glucoseValue where glucoseValue >= superCorrectionHighThreshold:
-                suspendDeliveryFraction = maximumSuspendDeliveryFraction
-            default:
-                suspendDeliveryFraction = maximumSuspendDeliveryFraction * (currentGlucoseValue - superCorrectionLowThreshold) / (superCorrectionHighThreshold - superCorrectionLowThreshold)
-            }
-            
-            if suspendDeliveryFraction > 0.0 {
-                fractionalSuspendInsulinDeliveryEffect = fractionOfEffect(glucoseEffect: suspendInsulinDeliveryEffect, fraction: suspendDeliveryFraction)
-                var superCorrectionEnabledEffects = settings.enabledEffects
-                superCorrectionEnabledEffects.insert(.fractionalSuspendInsulinDelivery)
-                predictedGlucose = try predictGlucose(using: superCorrectionEnabledEffects)
-                predictedGlucoseIncludingPendingInsulin = try predictGlucose(using: superCorrectionEnabledEffects, includingPendingInsulin: true)
-            }
+        case let glucoseValue where glucoseValue >= superCorrectionHighThreshold:
+            suspendDeliveryFraction = maximumSuspendDeliveryFraction
+        default:
+            suspendDeliveryFraction = maximumSuspendDeliveryFraction * (currentGlucoseValue - superCorrectionLowThreshold) / (superCorrectionHighThreshold - superCorrectionLowThreshold)
+        }
+        if suspendDeliveryFraction > 0.0 {
+            fractionalSuspendInsulinDeliveryEffect = fractionOfEffect(glucoseEffect: suspendInsulinDeliveryEffect, fraction: suspendDeliveryFraction)
+            var superCorrectionEnabledEffects = settings.enabledEffects
+            superCorrectionEnabledEffects.insert(.fractionalSuspendInsulinDelivery)
+            predictedGlucose = try predictGlucose(using: superCorrectionEnabledEffects)
+            predictedGlucoseIncludingPendingInsulin = try predictGlucose(using: superCorrectionEnabledEffects, includingPendingInsulin: true)
         }
 
         let dosingRecommendation: AutomaticDoseRecommendation?
