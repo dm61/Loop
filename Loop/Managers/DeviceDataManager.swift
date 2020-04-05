@@ -16,7 +16,7 @@ import UserNotifications
 final class DeviceDataManager {
 
     private let queue = DispatchQueue(label: "com.loopkit.DeviceManagerQueue", qos: .utility)
-    
+
     fileprivate let dosingQueue: DispatchQueue = DispatchQueue(label: "com.loopkit.DeviceManagerDosingQueue", qos: .utility)
 
 
@@ -38,6 +38,8 @@ final class DeviceDataManager {
 
     /// The last time a BLE heartbeat was received and acted upon.
     private var lastBLEDrivenUpdate = Date.distantPast
+
+    private var deviceLog: PersistentDeviceLog
 
     // MARK: - CGM
 
@@ -90,6 +92,11 @@ final class DeviceDataManager {
     init() {
         pluginManager = PluginManager()
 
+        let fileManager = FileManager.default
+        let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let deviceLogDirectory = documentsDirectory.appendingPathComponent("DeviceLog")
+        deviceLog = PersistentDeviceLog(storageFile: deviceLogDirectory.appendingPathComponent("Storage.sqlite"))
+
         if let pumpManagerRawValue = UserDefaults.appGroup?.pumpManagerRawValue {
             pumpManager = pumpManagerFromRawValue(pumpManagerRawValue)
         } else {
@@ -101,7 +108,7 @@ final class DeviceDataManager {
         } else if isCGMManagerValidPumpManager {
             self.cgmManager = pumpManager as? CGMManager
         }
-        
+
         remoteDataManager.delegate = self
         statusExtensionManager = StatusExtensionDataManager(deviceDataManager: self)
 
@@ -158,12 +165,12 @@ final class DeviceDataManager {
 
         return Manager.init(rawState: rawState) as? PumpManagerUI
     }
-    
+
     private func processCGMResult(_ manager: CGMManager, result: CGMResult) {
         switch result {
         case .newData(let values):
             log.default("CGMManager:\(type(of: manager)) did update with \(values.count) values")
-                        
+
             loopManager.addGlucose(values) { result in
                 if manager.shouldSyncToRemoteService {
                     switch result {
@@ -173,26 +180,70 @@ final class DeviceDataManager {
                         break
                     }
                 }
-                
+
                 self.log.default("Asserting current pump data")
                 self.pumpManager?.assertCurrentPumpData()
             }
         case .noData:
             log.default("CGMManager:\(type(of: manager)) did update with no data")
-            
+
             pumpManager?.assertCurrentPumpData()
         case .error(let error):
             log.default("CGMManager:\(type(of: manager)) did update with error: \(error)")
-            
+
             self.setLastError(error: error)
             log.default("Asserting current pump data")
             pumpManager?.assertCurrentPumpData()
         }
-        
+
         updatePumpManagerBLEHeartbeatPreference()
     }
 
+    func generateDiagnosticReport(_ completion: @escaping (_ report: String) -> Void) {
+        self.loopManager.generateDiagnosticReport { (loopReport) in
+            self.deviceLog.getLogEntries(startDate: Date() - .hours(48)) { (result) in
+                let deviceLogReport: String
+                switch result {
+                case .failure(let error):
+                    deviceLogReport = "Error fetching entries: \(error)"
+                case .success(let entries):
+                    deviceLogReport = entries.map { "* \($0.timestamp) \($0.managerIdentifier) \($0.deviceIdentifier ?? "") \($0.type) \($0.message)" }.joined(separator: "\n")
+                }
 
+                let report = [
+                    Bundle.main.localizedNameAndVersion,
+                    "* gitRevision: \(Bundle.main.gitRevision ?? "N/A")",
+                    "* gitBranch: \(Bundle.main.gitBranch ?? "N/A")",
+                    "* sourceRoot: \(Bundle.main.sourceRoot ?? "N/A")",
+                    "* buildDateString: \(Bundle.main.buildDateString ?? "N/A")",
+                    "* xcodeVersion: \(Bundle.main.xcodeVersion ?? "N/A")",
+                    "",
+                    "## FeatureFlags",
+                    "\(FeatureFlags)",
+                    "",
+                    "## DeviceDataManager",
+                    "* launchDate: \(self.launchDate)",
+                    "* lastError: \(String(describing: self.lastError))",
+                    "* lastBLEDrivenUpdate: \(self.lastBLEDrivenUpdate)",
+                    "",
+                    self.cgmManager != nil ? String(reflecting: self.cgmManager!) : "cgmManager: nil",
+                    "",
+                    self.pumpManager != nil ? String(reflecting: self.pumpManager!) : "pumpManager: nil",
+                    "",
+                    "## Device Communication Log",
+                    deviceLogReport,
+                    "",
+                    String(reflecting: self.watchManager!),
+                    "",
+                    String(reflecting: self.statusExtensionManager!),
+                    "",
+                    loopReport,
+                ].joined(separator: "\n")
+
+                completion(report)
+            }
+        }
+    }
 }
 
 private extension DeviceDataManager {
@@ -277,6 +328,7 @@ extension DeviceDataManager: RemoteDataManagerDelegate {
 
 // MARK: - DeviceManagerDelegate
 extension DeviceDataManager: DeviceManagerDelegate {
+
     func scheduleNotification(for manager: DeviceManager,
                               identifier: String,
                               content: UNNotificationContent,
@@ -292,6 +344,10 @@ extension DeviceDataManager: DeviceManagerDelegate {
 
     func clearNotification(for manager: DeviceManager, identifier: String) {
         UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [identifier])
+    }
+
+    func deviceManager(_ manager: DeviceManager, logEventForDeviceIdentifier deviceIdentifier: String?, type: DeviceLogEntryType, message: String, completion: ((Error?) -> Void)?) {
+        deviceLog.log(managerIdentifier: Swift.type(of: manager).managerIdentifier, deviceIdentifier: deviceIdentifier, type: type, message: message, completion: completion)
     }
 }
 
@@ -497,7 +553,7 @@ extension DeviceDataManager: PumpManagerDelegate {
             }
         }
     }
-    
+
     func pumpManagerRecommendsLoop(_ pumpManager: PumpManager) {
         dispatchPrecondition(condition: .onQueue(queue))
         log.default("PumpManager:\(type(of: pumpManager)) recommends loop")
@@ -584,7 +640,7 @@ extension DeviceDataManager: LoopDataManagerDelegate {
         guard let pumpManager = pumpManager else {
             return unitsPerHour
         }
-        
+
         return pumpManager.roundToSupportedBasalRate(unitsPerHour: unitsPerHour)
     }
 
@@ -592,10 +648,10 @@ extension DeviceDataManager: LoopDataManagerDelegate {
         guard let pumpManager = pumpManager else {
             return units
         }
-        
+
         let rounded = ([0.0] + pumpManager.supportedBolusVolumes).enumerated().min( by: { abs($0.1 - units) < abs($1.1 - units) } )!.1
         self.log.default("Rounded \(units) to \(rounded)")
-        
+
         return rounded
     }
 
@@ -608,16 +664,16 @@ extension DeviceDataManager: LoopDataManagerDelegate {
             completion(LoopError.configurationError(.pumpManager))
             return
         }
-        
+
         dosingQueue.async {
             let doseDispatchGroup = DispatchGroup()
-            
+
             var tempBasalError: Error? = nil
             var bolusError: Error? = nil
-            
+
             if let basalAdjustment = automaticDose.recommendation.basalAdjustment {
                 self.log.default("LoopManager did recommend basal change")
-                
+
                 doseDispatchGroup.enter()
                 pumpManager.enactTempBasal(unitsPerHour: basalAdjustment.unitsPerHour, for: basalAdjustment.duration, completion: { result in
                     switch result {
@@ -629,9 +685,9 @@ extension DeviceDataManager: LoopDataManagerDelegate {
                     doseDispatchGroup.leave()
                 })
             }
-            
+
             doseDispatchGroup.wait()
-            
+
             guard tempBasalError == nil else {
                 completion(tempBasalError)
                 return
@@ -653,7 +709,7 @@ extension DeviceDataManager: LoopDataManagerDelegate {
                     doseDispatchGroup.leave()
                 }
             }
-            
+
             doseDispatchGroup.wait()
             completion(bolusError)
         }
@@ -697,7 +753,7 @@ extension Notification.Name {
 // MARK: - Remote Notification Handling
 extension DeviceDataManager {
     func handleRemoteNotification(_ notification: [String: AnyObject]) {
-        
+
         if let command = RemoteCommand(notification: notification, allowedPresets: loopManager.settings.overridePresets) {
             switch command {
             case .temporaryScheduleOverride(let override):
