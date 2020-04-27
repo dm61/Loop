@@ -179,7 +179,7 @@ class StatusViewController: UIViewController, NCWidgetProviding {
         var glucose: [StoredGlucoseSample] = []
 
         group.enter()
-        doseStore.insulinOnBoard(at: Date()) { (result) in
+        doseStore.insulinOnBoard(at: simDate.currentDate()) { (result) in
             switch result {
             case .success(let iobValue):
                 activeInsulin = iobValue.value
@@ -189,7 +189,7 @@ class StatusViewController: UIViewController, NCWidgetProviding {
             group.leave()
         }
 
-        charts.startDate = Calendar.current.nextDate(after: Date(timeIntervalSinceNow: .minutes(-5)), matching: DateComponents(minute: 0), matchingPolicy: .strict, direction: .backward) ?? Date()
+        charts.startDate = Calendar.current.nextDate(after: Date(timeIntervalSinceNow: .minutes(-5)), matching: DateComponents(minute: 0), matchingPolicy: .strict, direction: .backward) ?? simDate.currentDate()
 
         // Showing the whole history plus full prediction in the glucose plot
         // is a little crowded, so limit it to three hours in the future:

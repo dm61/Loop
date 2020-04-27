@@ -38,7 +38,7 @@ struct NetBasal {
     }
 
     init(lastTempBasal: DoseEntry?, maxBasal: Double?, scheduledBasal: AbsoluteScheduleValue<Double>) {
-        if let lastTempBasal = lastTempBasal, lastTempBasal.endDate > Date() {
+        if let lastTempBasal = lastTempBasal, lastTempBasal.endDate > simDate.currentDate() {
             let maxBasal = maxBasal ?? defaultMaxBasalForScale
             rate = lastTempBasal.unitsPerHour - scheduledBasal.value
             start = lastTempBasal.startDate

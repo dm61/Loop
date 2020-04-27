@@ -67,16 +67,16 @@ final class StatusExtensionDataManager {
                     rate: 2.1,
                     percentage: 0.6,
                     start:
-                    Date(timeIntervalSinceNow: -250),
-                    end: Date(timeIntervalSinceNow: .minutes(30))
+                    simDate.currentDate(timeIntervalSinceNow: -250),
+                    end: simDate.currentDate(timeIntervalSinceNow: .minutes(30))
                 )
                 context.predictedGlucose = PredictedGlucoseContext(
                     values: (1...36).map { 89.123 + Double($0 * 5) }, // 3 hours of linear data
                     unit: HKUnit.milligramsPerDeciliter,
-                    startDate: Date(),
+                    startDate: simDate.currentDate(),
                     interval: TimeInterval(minutes: 5))
 
-                let lastLoopCompleted = Date(timeIntervalSinceNow: -TimeInterval(minutes: 0))
+                let lastLoopCompleted = simDate.currentDate(timeIntervalSinceNow: -TimeInterval(minutes: 0))
             #else
                 let lastLoopCompleted = manager.lastLoopCompleted
             #endif

@@ -222,7 +222,7 @@ class GlucoseChartScene: SKScene {
             return
         }
 
-        let spannedInterval = DateInterval(start: Date() - visibleDuration / 2, duration: visibleDuration)
+        let spannedInterval = DateInterval(start: simDate.currentDate() - visibleDuration / 2, duration: visibleDuration)
         let glucoseRange = data.chartableGlucoseRange(from: spannedInterval)
         let scaler = GlucoseChartScaler(size: size, dateInterval: spannedInterval, glucoseRange: glucoseRange, unit: unit, coordinateSystem: .inverted)
 

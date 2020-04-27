@@ -236,7 +236,7 @@ class IntegralRetrospectiveCorrectionTests: XCTestCase {
         let basalRate = BasalRateSchedule(dailyItems: [RepeatingScheduleValue(startTime: TimeInterval(0), value: basalRateFixture)])
         let glucoseTargetRange = GlucoseRangeSchedule(unit: glucoseUnit, dailyItems: [RepeatingScheduleValue(startTime: TimeInterval(0), value: DoubleRange(minValue: glucoseTargetFixture.doubleValue(for: glucoseUnit), maxValue: glucoseTargetFixture.doubleValue(for: glucoseUnit)))])
         let retrospectiveGlucoseDiscrepanciesSummed: [GlucoseChange] = []
-        let glucoseDate = Date()
+        let glucoseDate = simDate.currentDate()
         let glucose = GlucoseFixtureValue(startDate: glucoseDate, quantity: HKQuantity(unit: glucoseUnit, doubleValue: 100))
         let glucoseCorrectionEffect = retrospectiveCorrection.computeEffect(startingAt: glucose, retrospectiveGlucoseDiscrepanciesSummed: retrospectiveGlucoseDiscrepanciesSummed, recencyInterval: recencyInterval, insulinSensitivitySchedule: insulinSensitivity, basalRateSchedule: basalRate, glucoseCorrectionRangeSchedule: glucoseTargetRange, retrospectiveCorrectionGroupingInterval: retrospectiveCorrectionGroupingInterval)
         XCTAssertEqual(glucoseCorrectionEffect, [], "Given empty discrepancy array, IRC should return empty effects array")

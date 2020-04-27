@@ -58,7 +58,7 @@ final class WatchDataManager: NSObject {
     }
     
     private func updateBedtimeIfNeeded() {
-        let now = Date()
+        let now = simDate.currentDate()
         let lastUpdateInterval = now.timeIntervalSince(lastBedtimeQuery)
         let calendar = Calendar.current
         
@@ -225,7 +225,7 @@ final class WatchDataManager: NSObject {
             }
 
             updateGroup.enter()
-            manager.doseStore.insulinOnBoard(at: Date()) { (result) in
+            manager.doseStore.insulinOnBoard(at: simDate.currentDate()) { (result) in
                 switch result {
                 case .success(let iobValue):
                     context.iob = iobValue.value
@@ -420,7 +420,7 @@ extension WCSession {
     }
     
     fileprivate func complicationUserInfoTransferInterval(bedtime: Date?) -> TimeInterval {
-        let now = Date()
+        let now = simDate.currentDate()
         let timeUntilRefresh: TimeInterval
 
         if let midnight = Calendar.current.nextDate(after: now, matching: DateComponents(hour: 0), matchingPolicy: .nextTime) {

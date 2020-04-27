@@ -10,6 +10,7 @@ import Foundation
 import UIKit
 import HealthKit
 import WatchKit
+import LoopKit
 
 private let textInsets = UIEdgeInsets(top: 2, left: 2, bottom: 2, right: 2)
 
@@ -74,7 +75,7 @@ final class ComplicationChartManager {
     }
 
     private func drawChart(in context: CGContext, data: GlucoseChartData, size: CGSize) {
-        let now = Date()
+        let now = simDate.currentDate()
         lastRenderDate = now
         let spannedInterval = DateInterval(start: now - visibleInterval / 2, duration: visibleInterval)
         let glucoseRange = data.chartableGlucoseRange(from: spannedInterval)

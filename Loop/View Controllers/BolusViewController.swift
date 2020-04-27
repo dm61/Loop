@@ -289,7 +289,7 @@ final class BolusViewController: ChartsTableViewController, IdentifiableClass, U
         let futureHours = ceil((deviceManager.loopManager.insulinModelSettings?.model.effectDuration ?? .hours(4)).hours)
         let historyHours = max(settings.statusChartMinimumHistoryDisplay.hours, totalHours - futureHours)
 
-        let date = Date(timeIntervalSinceNow: -TimeInterval(hours: historyHours))
+        let date = simDate.currentDate(timeIntervalSinceNow: -TimeInterval(hours: historyHours))
         let chartStartDate = Calendar.current.nextDate(after: date, matching: DateComponents(minute: 0), matchingPolicy: .strict, direction: .backward) ?? date
         if charts.startDate != chartStartDate {
             refreshContext.formUnion(RefreshContext.all)
@@ -465,7 +465,7 @@ final class BolusViewController: ChartsTableViewController, IdentifiableClass, U
             return nil
         }
 
-        return DoseEntry(type: .bolus, startDate: Date(), value: amount, unit: .units)
+        return DoseEntry(type: .bolus, startDate: simDate.currentDate(), value: amount, unit: .units)
     }
 
     private var predictionRecomputation: DispatchWorkItem?

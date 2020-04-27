@@ -63,7 +63,7 @@ final class CarbEntryViewController: ChartsTableViewController, IdentifiableClas
         }
     }
 
-    fileprivate var date = Date() {
+    fileprivate var date = simDate.currentDate() {
         didSet {
             updateContinueButtonEnabled()
         }
@@ -219,7 +219,7 @@ final class CarbEntryViewController: ChartsTableViewController, IdentifiableClas
             cell.titleLabel.text = NSLocalizedString("Date", comment: "Title of the carb entry date picker cell")
             cell.datePicker.isEnabled = isSampleEditable
             cell.datePicker.datePickerMode = .dateAndTime
-            cell.datePicker.maximumDate = Date(timeIntervalSinceNow: maximumDateFutureInterval)
+            cell.datePicker.maximumDate = simDate.currentDate(timeIntervalSinceNow: maximumDateFutureInterval)
             cell.datePicker.minuteInterval = 1
             cell.date = date
             cell.delegate = self

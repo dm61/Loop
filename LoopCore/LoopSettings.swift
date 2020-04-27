@@ -151,31 +151,31 @@ extension LoopSettings {
         }
     }
 
-    public func scheduleOverrideEnabled(at date: Date = Date()) -> Bool {
+    public func scheduleOverrideEnabled(at date: Date = simDate.currentDate()) -> Bool {
         guard let override = scheduleOverride else { return false }
         return override.isActive(at: date)
     }
 
-    public func nonPreMealOverrideEnabled(at date: Date = Date()) -> Bool {
+    public func nonPreMealOverrideEnabled(at date: Date = simDate.currentDate()) -> Bool {
         guard let override = scheduleOverride else { return false }
         return override.context != .preMeal && override.isActive(at: date)
     }
 
-    public func preMealTargetEnabled(at date: Date = Date()) -> Bool {
+    public func preMealTargetEnabled(at date: Date = simDate.currentDate()) -> Bool {
         guard let override = scheduleOverride else { return false }
         return override.context == .preMeal && override.isActive(at: date)
     }
 
-    public func futureOverrideEnabled(relativeTo date: Date = Date()) -> Bool {
+    public func futureOverrideEnabled(relativeTo date: Date = simDate.currentDate()) -> Bool {
         guard let override = scheduleOverride else { return false }
         return override.startDate > date
     }
 
-    public mutating func enablePreMealOverride(at date: Date = Date(), for duration: TimeInterval) {
+    public mutating func enablePreMealOverride(at date: Date = simDate.currentDate(), for duration: TimeInterval) {
         scheduleOverride = preMealOverride(beginningAt: date, for: duration)
     }
 
-    public func preMealOverride(beginningAt date: Date = Date(), for duration: TimeInterval) -> TemporaryScheduleOverride? {
+    public func preMealOverride(beginningAt date: Date = simDate.currentDate(), for duration: TimeInterval) -> TemporaryScheduleOverride? {
         guard let premealTargetRange = preMealTargetRange, let unit = glucoseUnit else {
             return nil
         }
@@ -189,11 +189,11 @@ extension LoopSettings {
         )
     }
 
-    public mutating func enableLegacyWorkoutOverride(at date: Date = Date(), for duration: TimeInterval) {
+    public mutating func enableLegacyWorkoutOverride(at date: Date = simDate.currentDate(), for duration: TimeInterval) {
         scheduleOverride = legacyWorkoutOverride(beginningAt: date, for: duration)
     }
 
-    public func legacyWorkoutOverride(beginningAt date: Date = Date(), for duration: TimeInterval) -> TemporaryScheduleOverride? {
+    public func legacyWorkoutOverride(beginningAt date: Date = simDate.currentDate(), for duration: TimeInterval) -> TemporaryScheduleOverride? {
         guard let legacyWorkoutTargetRange = legacyWorkoutTargetRange, let unit = glucoseUnit else {
             return nil
         }

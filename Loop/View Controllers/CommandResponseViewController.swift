@@ -8,13 +8,14 @@
 
 import Foundation
 import LoopKitUI
+import LoopKit
 
 
 extension CommandResponseViewController {
     typealias T = CommandResponseViewController
 
     static func generateDiagnosticReport(deviceManager: DeviceDataManager) -> T {
-        let date = Date()
+        let date = simDate.currentDate()
         let vc = T(command: { (completionHandler) in
             deviceManager.generateDiagnosticReport { (report) in
                 DispatchQueue.main.async {
@@ -36,7 +37,7 @@ extension CommandResponseViewController {
     }
     
     static func generateParameterEstimationReport(deviceManager: DeviceDataManager) -> T {
-        let date = Date()
+        let date = simDate.currentDate()
         let vc = T(command: { (completionHandler) in
             deviceManager.loopManager.generateParameterEstimationReport { (report) in
                 DispatchQueue.main.async {

@@ -14,7 +14,7 @@ import LoopTestingKit
 import UserNotifications
 
 final class DeviceDataManager {
-
+    
     private let queue = DispatchQueue(label: "com.loopkit.DeviceManagerQueue", qos: .utility)
 
     fileprivate let dosingQueue: DispatchQueue = DispatchQueue(label: "com.loopkit.DeviceManagerDosingQueue", qos: .utility)
@@ -23,7 +23,7 @@ final class DeviceDataManager {
     private let log = DiagnosticLogger.shared.forCategory("DeviceManager")
 
     /// Remember the launch date of the app for diagnostic reporting
-    private let launchDate = Date()
+    private let launchDate = simDate.currentDate()
 
     /// Manages authentication for remote services
     let remoteDataManager = RemoteDataManager()
@@ -201,7 +201,7 @@ final class DeviceDataManager {
 
     func generateDiagnosticReport(_ completion: @escaping (_ report: String) -> Void) {
         self.loopManager.generateDiagnosticReport { (loopReport) in
-            self.deviceLog.getLogEntries(startDate: Date() - .hours(48)) { (result) in
+            self.deviceLog.getLogEntries(startDate: simDate.currentDate() - .hours(48)) { (result) in
                 let deviceLogReport: String
                 switch result {
                 case .failure(let error):
@@ -274,20 +274,20 @@ private extension DeviceDataManager {
 
     func setLastError(error: Error) {
         DispatchQueue.main.async {
-            self.lastError = (date: Date(), error: error)
+            self.lastError = (date: simDate.currentDate(), error: error)
         }
     }
 }
 
 // MARK: - Client API
 extension DeviceDataManager {
-    func enactBolus(units: Double, at startDate: Date = Date(), completion: @escaping (_ error: Error?) -> Void) {
+    func enactBolus(units: Double, at startDate: Date = simDate.currentDate(), completion: @escaping (_ error: Error?) -> Void) {
         guard let pumpManager = pumpManager else {
             completion(LoopError.configurationError(.pumpManager))
             return
         }
 
-        self.loopManager.addRequestedBolus(DoseEntry(type: .bolus, startDate: Date(), value: units, unit: .units), completion: nil)
+        self.loopManager.addRequestedBolus(DoseEntry(type: .bolus, startDate: simDate.currentDate(), value: units, unit: .units), completion: nil)
         pumpManager.enactBolus(units: units, at: startDate, willRequest: { (dose) in
             // No longer used...
         }) { (result) in
@@ -362,7 +362,7 @@ extension DeviceDataManager: CGMManagerDelegate {
 
     func cgmManager(_ manager: CGMManager, didUpdateWith result: CGMResult) {
         dispatchPrecondition(condition: .onQueue(queue))
-        lastBLEDrivenUpdate = Date()
+        lastBLEDrivenUpdate = simDate.currentDate()
         processCGMResult(manager, result: result);
     }
 
@@ -399,27 +399,30 @@ extension DeviceDataManager: PumpManagerDelegate {
         log.default("PumpManager:\(type(of: pumpManager)) did fire BLE heartbeat")
 
         let bleHeartbeatUpdateInterval: TimeInterval
-        switch loopManager.lastLoopCompleted?.timeIntervalSinceNow {
-        case .none:
+        if let lastLoopCompletedDate = loopManager.lastLoopCompleted {
+            let sinceNow = simDate.timeIntervalSinceNow(lastLoopCompletedDate)
+            switch sinceNow {
+            case let interval where interval < .minutes(-10):
+                // If we haven't looped successfully in more than 10 minutes, retry only every 5 minutes
+                bleHeartbeatUpdateInterval = .minutes(5)
+            case let interval where interval <= .minutes(-5):
+                // If we haven't looped successfully in more than 5 minutes, retry every minute
+                bleHeartbeatUpdateInterval = .minutes(1)
+            case let interval:
+                // If we looped successfully less than 5 minutes ago, ignore the heartbeat.
+                log.default("PumpManager:\(type(of: pumpManager)) ignoring pumpManager heartbeat. Last loop completed \(-interval.minutes) minutes ago")
+                return
+            }
+        } else {
             // If we haven't looped successfully, retry only every 5 minutes
             bleHeartbeatUpdateInterval = .minutes(5)
-        case let interval? where interval < .minutes(-10):
-            // If we haven't looped successfully in more than 10 minutes, retry only every 5 minutes
-            bleHeartbeatUpdateInterval = .minutes(5)
-        case let interval? where interval <= .minutes(-5):
-            // If we haven't looped successfully in more than 5 minutes, retry every minute
-            bleHeartbeatUpdateInterval = .minutes(1)
-        case let interval?:
-            // If we looped successfully less than 5 minutes ago, ignore the heartbeat.
-            log.default("PumpManager:\(type(of: pumpManager)) ignoring pumpManager heartbeat. Last loop completed \(-interval.minutes) minutes ago")
-            return
         }
 
-        guard lastBLEDrivenUpdate.timeIntervalSinceNow <= -bleHeartbeatUpdateInterval else {
+        guard simDate.timeIntervalSinceNow(lastBLEDrivenUpdate) <= -bleHeartbeatUpdateInterval else {
             log.default("PumpManager:\(type(of: pumpManager)) ignoring pumpManager heartbeat. Last ble update \(lastBLEDrivenUpdate)")
             return
         }
-        lastBLEDrivenUpdate = Date()
+        lastBLEDrivenUpdate = simDate.currentDate()
 
         cgmManager?.fetchNewDataIfNeeded { (result) in
             if case .newData = result {
@@ -696,7 +699,7 @@ extension DeviceDataManager: LoopDataManagerDelegate {
             if automaticDose.recommendation.bolusUnits > 0 {
                 self.log.default("LoopManager did recommend bolus dose")
                 doseDispatchGroup.enter()
-                pumpManager.enactBolus(units: automaticDose.recommendation.bolusUnits, at: Date(), willRequest: { (dose) in
+                pumpManager.enactBolus(units: automaticDose.recommendation.bolusUnits, at: simDate.currentDate(), willRequest: { (dose) in
                     self.log.default("PumpManager willRequest bolus")
                 }) { (result) in
                     switch result {

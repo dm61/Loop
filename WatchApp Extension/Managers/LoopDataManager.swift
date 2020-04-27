@@ -127,7 +127,7 @@ extension LoopDataManager {
             return false
         }
 
-        lastGlucoseBackfill = Date()
+        lastGlucoseBackfill = simDate.currentDate()
         let userInfo = GlucoseBackfillRequestUserInfo(startDate: latestDate)
         WCSession.default.sendGlucoseBackfillRequestMessage(userInfo) { (result) in
             switch result {

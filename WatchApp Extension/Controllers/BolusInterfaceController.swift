@@ -10,6 +10,7 @@ import LoopCore
 import WatchKit
 import Foundation
 import WatchConnectivity
+import LoopKit
 
 
 final class BolusInterfaceController: WKInterfaceController, IdentifiableClass {
@@ -276,7 +277,7 @@ extension BolusInterfaceController {
         willDeactivateObserver = nil
 
         let bolusValue = bolusValueFromPickerValue(pickerValue)
-        let bolus = SetBolusUserInfo(value: bolusValue, startDate: Date())
+        let bolus = SetBolusUserInfo(value: bolusValue, startDate: simDate.currentDate())
 
         if bolus.value > .ulpOfOne {
             do {

@@ -97,7 +97,7 @@ public final class GlucoseHUDView: BaseHUDView {
         let time = timeFormatter.string(from: glucoseStartDate)
         caption?.text = time
         
-        let glucoseValueCurrent = glucoseStartDate.timeIntervalSinceNow > -staleGlucoseAge
+        let glucoseValueCurrent = simDate.timeIntervalSinceNow(glucoseStartDate) > -staleGlucoseAge
 
         let numberFormatter = NumberFormatter.glucoseFormatter(for: unit)
         if let valueString = numberFormatter.string(from: glucoseQuantity) {

@@ -46,6 +46,11 @@ final class LoopDataManager {
 
     // Make overall retrospective effect available for display to the user
     var totalRetrospectiveCorrection: HKQuantity?
+    
+    let timer = Timer.scheduledTimer(withTimeInterval: SimDate.simSampleTime, repeats: true) { timer in
+        simDate.incrementSimDate()
+        print("myLoop: \(SimDate.date)")
+    }
 
     init(
         lastLoopCompleted: Date?,
@@ -140,7 +145,7 @@ final class LoopDataManager {
             }
         ]
     }
-
+    
     /// Loop-related settings
     ///
     /// These are not thread-safe.
@@ -698,7 +703,7 @@ extension LoopDataManager {
             NotificationCenter.default.post(name: .LoopRunning, object: self)
 
             self.lastLoopError = nil
-            let startDate = Date()
+            let startDate = simDate.currentDate()
 
             do {
                 try self.update()
@@ -710,7 +715,7 @@ extension LoopDataManager {
                         if let error = error {
                             self.logger.error(error)
                         } else {
-                            self.loopDidComplete(date: Date(), duration: -startDate.timeIntervalSinceNow)
+                            self.loopDidComplete(date: simDate.currentDate(), duration: -simDate.timeIntervalSinceNow(startDate))
                         }
                         self.logger.default("Loop ended")
                         self.notify(forChange: .tempBasal)
@@ -719,7 +724,7 @@ extension LoopDataManager {
                     // Delay the notification until we know the result of the temp basal
                     return
                 } else {
-                    self.loopDidComplete(date: Date(), duration: -startDate.timeIntervalSinceNow)
+                    self.loopDidComplete(date: simDate.currentDate(), duration: -simDate.timeIntervalSinceNow(startDate))
                 }
             } catch let error {
                 self.lastLoopError = error
@@ -742,7 +747,7 @@ extension LoopDataManager {
         // Fetch glucose effects as far back as we want to make retroactive analysis
         var latestGlucoseDate: Date?
         updateGroup.enter()
-        glucoseStore.getCachedGlucoseSamples(start: Date(timeIntervalSinceNow: -settings.inputDataRecencyInterval)) { (values) in
+        glucoseStore.getCachedGlucoseSamples(start: simDate.currentDate(timeIntervalSinceNow: -settings.inputDataRecencyInterval)) { (values) in
             latestGlucoseDate = values.last?.startDate
             updateGroup.leave()
         }
@@ -754,7 +759,7 @@ extension LoopDataManager {
 
         let retrospectiveStart = lastGlucoseDate.addingTimeInterval(-retrospectiveCorrection.retrospectionInterval)
 
-        let earliestEffectDate = Date(timeIntervalSinceNow: .hours(-24))
+        let earliestEffectDate = simDate.currentDate(timeIntervalSinceNow: .hours(-24))
         let nextEffectDate = insulinCounteractionEffects.last?.endDate ?? earliestEffectDate
 
         if glucoseMomentumEffect == nil {
@@ -833,7 +838,7 @@ extension LoopDataManager {
 
         if carbsOnBoard == nil {
             updateGroup.enter()
-            carbStore.carbsOnBoard(at: Date(), effectVelocities: settings.dynamicCarbAbsorptionEnabled ? insulinCounteractionEffects : nil) { (result) in
+            carbStore.carbsOnBoard(at: simDate.currentDate(), effectVelocities: settings.dynamicCarbAbsorptionEnabled ? insulinCounteractionEffects : nil) { (result) in
                 switch result {
                 case .failure:
                     // Failure is expected when there is no carb data
@@ -895,7 +900,7 @@ extension LoopDataManager {
         }
 
         let pendingTempBasalInsulin: Double
-        let date = Date()
+        let date = simDate.currentDate()
 
         if let basalDeliveryState = basalDeliveryState, case .tempBasal(let lastTempBasal) = basalDeliveryState, lastTempBasal.endDate > date {
             let normalBasalRate = basalRates.value(at: date)
@@ -937,7 +942,7 @@ extension LoopDataManager {
 
         let pumpStatusDate = doseStore.lastAddedPumpData
         let lastGlucoseDate = glucose.startDate
-        let now = Date()
+        let now = simDate.currentDate()
 
         guard now.timeIntervalSince(lastGlucoseDate) <= settings.inputDataRecencyInterval else {
             throw LoopError.glucoseTooOld(date: glucose.startDate)
@@ -998,7 +1003,7 @@ extension LoopDataManager {
                     throw LoopError.configurationError(.generalSettings)
                 }
 
-                let earliestEffectDate = Date(timeIntervalSinceNow: .hours(-24))
+                let earliestEffectDate = simDate.currentDate(timeIntervalSinceNow: .hours(-24))
                 let nextEffectDate = insulinCounteractionEffects.last?.endDate ?? earliestEffectDate
                 let bolusEffect = [potentialBolus]
                     .glucoseEffects(insulinModel: model, insulinSensitivity: sensitivity)
@@ -1042,7 +1047,7 @@ extension LoopDataManager {
 
         let pumpStatusDate = doseStore.lastAddedPumpData
         let lastGlucoseDate = glucose.startDate
-        let now = Date()
+        let now = simDate.currentDate()
 
         guard now.timeIntervalSince(lastGlucoseDate) <= settings.inputDataRecencyInterval else {
             throw LoopError.glucoseTooOld(date: glucose.startDate)
@@ -1110,7 +1115,7 @@ extension LoopDataManager {
 
         return try? carbStore.carbsOnBoard(
             from: entries,
-            at: Date(),
+            at: simDate.currentDate(),
             effectVelocities: settings.dynamicCarbAbsorptionEnabled ? insulinCounteractionEffects : nil
         )
     }
@@ -1186,7 +1191,7 @@ extension LoopDataManager {
         let insulinActionDuration = insulinModel.effectDuration
 
         // generate effect of suspending insulin delivery by setting temp basal rate to zero
-        let startZeroTempDose = Date()
+        let startZeroTempDose = simDate.currentDate()
         let endZeroTempDose = startZeroTempDose.addingTimeInterval(insulinActionDuration)
         let zeroTemp = DoseEntry(type: .tempBasal, startDate: startZeroTempDose, endDate: endZeroTempDose, value: 0.0, unit: DoseUnit.unitsPerHour)
         suspendInsulinDeliveryEffect = zeroTemp.tempBasalGlucoseEffects(insulinModel: insulinModel, insulinSensitivity: insulinSensitivity, basalRateSchedule: basalRateSchedule).filterDateRange(startZeroTempDose, endZeroTempDose)
@@ -1228,7 +1233,7 @@ extension LoopDataManager {
 
         let pumpStatusDate = doseStore.lastAddedPumpData
 
-        let startDate = Date()
+        let startDate = simDate.currentDate()
 
         guard startDate.timeIntervalSince(glucose.startDate) <= settings.inputDataRecencyInterval else {
             self.predictedGlucose = nil
@@ -1316,7 +1321,7 @@ extension LoopDataManager {
         if let standardDose = standardDosingRecommendation?.bolusUnits, standardDose > 0.0 {
             standardBolusDose = standardDose
         }
-        print("\n myLoop ----- \(Date()) ------")
+        print("\n myLoop ----- \(simDate.currentDate()) ------")
         print("myLoop standard bolus dose \(String(describing: standardBolusDose))")
 
         if let momentum = self.glucoseMomentumEffect, let lastMomentumEffect = momentum.last?.quantity.doubleValue(for: .milligramsPerDeciliter), lastMomentumEffect > 0.0 {
@@ -1416,7 +1421,11 @@ extension LoopDataManager {
             return
         }
 
-        guard abs(recommendedDose.date.timeIntervalSinceNow) < TimeInterval(minutes: 5) else {
+        let doseDate = recommendedDose.date
+        let now = simDate.currentDate()
+        let timeIntervalSinceNow = now.timeIntervalSince(doseDate)
+        
+        guard abs(timeIntervalSinceNow) < TimeInterval(minutes: 5) else {
             completion(LoopError.recommendationExpired(date: recommendedDose.date))
             return
         }
@@ -1440,7 +1449,7 @@ extension LoopDataManager {
         dispatchPrecondition(condition: .onQueue(dataAccessQueue))
         let updateGroup = DispatchGroup()
 
-        let startEstimationPeriod  =  Date(timeIntervalSinceNow: .hours(-24))
+        let startEstimationPeriod  =  simDate.currentDate(timeIntervalSinceNow: .hours(-24))
         let earliestEffectDate = startEstimationPeriod.addingTimeInterval(.hours(-8))
 
         // Collect data for parameter estimation: glucose, insulin effect, basal effect, carb statuses

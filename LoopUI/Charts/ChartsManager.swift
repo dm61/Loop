@@ -80,7 +80,7 @@ open class ChartsManager {
     // MARK: - Data
 
     /// The earliest date on the X-axis
-    public var startDate = Date() {
+    public var startDate = simDate.currentDate() {
         didSet {
             if startDate != oldValue {
                 log.debug("New chart start date: %@", String(describing: startDate))
@@ -93,7 +93,7 @@ open class ChartsManager {
     }
 
     /// The latest date on the X-axis
-    private var endDate = Date() {
+    private var endDate = simDate.currentDate() {
         didSet {
             if endDate != oldValue {
                 log.debug("New chart end date: %@", String(describing: endDate))

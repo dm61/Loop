@@ -202,7 +202,7 @@ final class StatusTableViewController: ChartsTableViewController {
         deviceManager.pumpManagerHUDProvider?.visible = active && onscreen
     }
     
-    public var basalDeliveryState: PumpManagerStatus.BasalDeliveryState = .active(Date()) {
+    public var basalDeliveryState: PumpManagerStatus.BasalDeliveryState = .active(simDate.currentDate()) {
         didSet {
             if oldValue != basalDeliveryState {
                 log.debug("New basalDeliveryState: %@", String(describing: basalDeliveryState))
@@ -257,7 +257,7 @@ final class StatusTableViewController: ChartsTableViewController {
         let futureHours = ceil((deviceManager.loopManager.insulinModelSettings?.model.effectDuration ?? .hours(4)).hours)
         let historyHours = max(settings.statusChartMinimumHistoryDisplay.hours, totalHours - futureHours)
 
-        let date = Date(timeIntervalSinceNow: -TimeInterval(hours: historyHours))
+        let date = simDate.currentDate(timeIntervalSinceNow: -TimeInterval(hours: historyHours))
         let chartStartDate = Calendar.current.nextDate(after: date, matching: DateComponents(minute: 0), matchingPolicy: .strict, direction: .backward) ?? date
         if charts.startDate != chartStartDate {
             refreshContext.formUnion(RefreshContext.all)
@@ -344,7 +344,7 @@ final class StatusTableViewController: ChartsTableViewController {
 
             // Display a recommended basal change only if we haven't completed recently, or we're in open-loop mode
             if lastLoopCompleted == nil ||
-                lastLoopCompleted! < Date(timeIntervalSinceNow: .minutes(-6)) ||
+                lastLoopCompleted! < simDate.currentDate(timeIntervalSinceNow: .minutes(-6)) ||
                 !manager.settings.dosingEnabled
             {
                 newRecommendedTempBasal = state.recommendedAutomaticDose
@@ -405,7 +405,7 @@ final class StatusTableViewController: ChartsTableViewController {
             }
 
             reloadGroup.enter()
-            deviceManager.loopManager.doseStore.getTotalUnitsDelivered(since: Calendar.current.startOfDay(for: Date())) { (result) in
+            deviceManager.loopManager.doseStore.getTotalUnitsDelivered(since: Calendar.current.startOfDay(for: simDate.currentDate())) { (result) in
                 DispatchQueue.main.async {
                     switch result {
                     case .failure:
@@ -463,7 +463,7 @@ final class StatusTableViewController: ChartsTableViewController {
             }
 
             // Show the larger of the value either before or after the current date
-            if let maxValue = charts.iob.iobPoints.allElementsAdjacent(to: Date()).max(by: {
+            if let maxValue = charts.iob.iobPoints.allElementsAdjacent(to: simDate.currentDate()).max(by: {
                 return $0.y.scalar < $1.y.scalar
             }) {
                 self.currentIOBDescription = String(describing: maxValue.y)
@@ -483,7 +483,7 @@ final class StatusTableViewController: ChartsTableViewController {
             if let cobValues = cobValues {
                 charts.setCOBValues(cobValues)
             }
-            if let index = charts.cob.cobPoints.closestIndex(priorTo: 	Date()) {
+            if let index = charts.cob.cobPoints.closestIndex(priorTo: simDate.currentDate()) {
                 self.currentCOBDescription = String(describing: charts.cob.cobPoints[index].y)
             } else {
                 self.currentCOBDescription = nil
@@ -599,7 +599,7 @@ final class StatusTableViewController: ChartsTableViewController {
             statusRowMode = .pumpSuspended(resuming: false)
         } else if self.basalDeliveryState == .resuming {
             statusRowMode = .pumpSuspended(resuming: true)
-        } else if case .inProgress(let dose) = bolusState, dose.endDate.timeIntervalSinceNow > 0 {
+        } else if case .inProgress(let dose) = bolusState, simDate.timeIntervalSinceNow(dose.endDate) > 0 {
             statusRowMode = .bolusing(dose: dose)
         } else if let (recommendation: dose, date: date) = recommendedDose {
             statusRowMode = .recommendedDose(dose: dose, at: date, enacting: false)
@@ -1213,7 +1213,7 @@ final class StatusTableViewController: ChartsTableViewController {
                 performSegue(withIdentifier: OverrideSelectionViewController.className, sender: toolbarItems![6])
             } else {
                 let vc = UIAlertController(workoutDurationSelectionHandler: { duration in
-                    let startDate = Date()
+                    let startDate = simDate.currentDate()
                     self.deviceManager.loopManager.settings.enableLegacyWorkoutOverride(at: startDate, for: duration)
                 })
 

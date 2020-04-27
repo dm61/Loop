@@ -253,7 +253,7 @@ final class SettingsTableViewController: UITableViewController {
 
                 if let glucoseTargetRangeSchedule = dataManager.loopManager.settings.glucoseTargetRangeSchedule {
                     let unit = glucoseTargetRangeSchedule.unit
-                    let value = glucoseTargetRangeSchedule.value(at: Date())
+                    let value = glucoseTargetRangeSchedule.value(at: simDate.currentDate())
                     let minTarget = valueNumberFormatter.string(from: value.minValue) ?? SettingsTableViewCell.NoValueString
                     let maxTarget = valueNumberFormatter.string(from: value.maxValue) ?? SettingsTableViewCell.NoValueString
 

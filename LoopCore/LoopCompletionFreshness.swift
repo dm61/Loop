@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import LoopKit
 
 public enum LoopCompletionFreshness {
     case fresh
@@ -45,7 +46,7 @@ public enum LoopCompletionFreshness {
         }
     }
     
-    public init(lastCompletion: Date?, at date: Date = Date()) {
+    public init(lastCompletion: Date?, at date: Date = simDate.currentDate()) {
         guard let lastCompletion = lastCompletion else {
             self = .unknown
             return

@@ -9,6 +9,7 @@
 import UIKit
 import LoopKitUI
 import LoopCore
+import LoopKit
 
 public final class LoopCompletionHUDView: BaseHUDView {
 
@@ -121,7 +122,7 @@ public final class LoopCompletionHUDView: BaseHUDView {
 
     @objc private func updateDisplay(_: Timer?) {
         if let date = lastLoopCompleted {
-            let ago = abs(min(0, date.timeIntervalSinceNow))
+            let ago = abs(min(0, simDate.timeIntervalSinceNow(date)))
             
             freshness = LoopCompletionFreshness(age: ago)
 

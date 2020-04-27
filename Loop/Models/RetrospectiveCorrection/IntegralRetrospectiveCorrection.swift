@@ -58,7 +58,7 @@ class IntegralRetrospectiveCorrection: RetrospectiveCorrection {
     var proportionalCorrection: Double = 0.0
     var integralCorrection: Double = 0.0
     var differentialCorrection: Double = 0.0
-    var currentDate: Date = Date()
+    var currentDate: Date = simDate.currentDate()
     var ircStatus: String = "-"
     
     /**
@@ -97,7 +97,7 @@ class IntegralRetrospectiveCorrection: RetrospectiveCorrection {
         
         // Loop settings relevant for calculation of effect limits
         // let settings = UserDefaults.appGroup?.loopSettings ?? LoopSettings()
-        currentDate = Date()
+        currentDate = simDate.currentDate()
         
         // Last discrepancy should be recent, otherwise clear the effect and return
         let glucoseDate = startingGlucose.startDate

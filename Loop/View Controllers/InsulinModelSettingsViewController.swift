@@ -157,7 +157,7 @@ class InsulinModelSettingsViewController: ChartsTableViewController, Identifiabl
     override func reloadData(animated: Bool = true) {
         if active && visible && refreshContext {
             refreshContext = false
-            charts.startDate = Calendar.current.nextDate(after: Date(), matching: DateComponents(minute: 0), matchingPolicy: .strict, direction: .backward) ?? Date()
+            charts.startDate = Calendar.current.nextDate(after: simDate.currentDate(), matching: DateComponents(minute: 0), matchingPolicy: .strict, direction: .backward) ?? simDate.currentDate()
 
             let bolus = DoseEntry(type: .bolus, startDate: charts.startDate, value: 1, unit: .units)
             let selectedModelIndex = self.selectedModelIndex

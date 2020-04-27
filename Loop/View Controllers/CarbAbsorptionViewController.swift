@@ -115,7 +115,7 @@ final class CarbAbsorptionViewController: ChartsTableViewController, Identifiabl
 
         var components = DateComponents()
         components.minute = 0
-        let date = Date(timeIntervalSinceNow: -TimeInterval(hours: max(1, totalHours)))
+        let date = simDate.currentDate(timeIntervalSinceNow: -TimeInterval(hours: max(1, totalHours)))
         let chartStartDate = Calendar.current.nextDate(after: date, matching: components, matchingPolicy: .strict, direction: .backward) ?? date
         if charts.startDate != chartStartDate {
             currentContext.formUnion(RefreshContext.all)
@@ -123,7 +123,7 @@ final class CarbAbsorptionViewController: ChartsTableViewController, Identifiabl
         charts.startDate = chartStartDate
 
         // Extend view to past 24 hours (per Bharat)
-        let visiblePeriod = Calendar.current.date(byAdding: .hour, value: -24, to: Date()) ?? Calendar.current.startOfDay(for: Date())
+        let visiblePeriod = Calendar.current.date(byAdding: .hour, value: -24, to: simDate.currentDate()) ?? Calendar.current.startOfDay(for: simDate.currentDate())
         let listStart = min(visiblePeriod, chartStartDate)
 
         let reloadGroup = DispatchGroup()
@@ -397,7 +397,7 @@ final class CarbAbsorptionViewController: ChartsTableViewController, Identifiabl
 
             // Warn the user if the carbsOnBoard value isn't recent
             let textColor: UIColor
-            switch carbsOnBoard.startDate.timeIntervalSinceNow {
+            switch simDate.timeIntervalSinceNow(carbsOnBoard.startDate) {
             case let t where t < .minutes(-30):
                 textColor = .staleColor
             case let t where t < .minutes(-15):

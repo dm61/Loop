@@ -89,7 +89,7 @@ struct NotificationManager {
 
         notification.sound = .default
 
-        if startDate.timeIntervalSinceNow >= TimeInterval(minutes: -5) {
+        if simDate.timeIntervalSinceNow(startDate) >= TimeInterval(minutes: -5) {
             notification.categoryIdentifier = LoopNotificationCategory.bolusFailure.rawValue
         }
 

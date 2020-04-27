@@ -166,7 +166,7 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         case NotificationManager.Action.retryBolus.rawValue:
             if  let units = response.notification.request.content.userInfo[NotificationManager.UserInfoKey.bolusAmount.rawValue] as? Double,
                 let startDate = response.notification.request.content.userInfo[NotificationManager.UserInfoKey.bolusStartDate.rawValue] as? Date,
-                startDate.timeIntervalSinceNow >= TimeInterval(minutes: -5)
+                simDate.timeIntervalSinceNow(startDate) >= TimeInterval(minutes: -5)
             {
                 AnalyticsManager.shared.didRetryBolus()
 

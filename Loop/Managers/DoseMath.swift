@@ -365,7 +365,7 @@ extension Collection where Element: GlucoseValue {
     /// - Returns: The recommended temporary basal rate and duration
     func recommendedTempBasal(
         to correctionRange: GlucoseRangeSchedule,
-        at date: Date = Date(),
+        at date: Date = simDate.currentDate(),
         suspendThreshold: HKQuantity?,
         sensitivity: InsulinSensitivitySchedule,
         model: InsulinModel,
@@ -431,7 +431,7 @@ extension Collection where Element: GlucoseValue {
     /// - Returns: The recommended dosing, if one could be computed
     func recommendedAutomaticDose(
         to correctionRange: GlucoseRangeSchedule,
-        at date: Date = Date(),
+        at date: Date = simDate.currentDate(),
         suspendThreshold: HKQuantity?,
         sensitivity: InsulinSensitivitySchedule,
         model: InsulinModel,
@@ -507,7 +507,7 @@ extension Collection where Element: GlucoseValue {
     /// - Returns: A bolus recommendation
     func recommendedManualBolus(
         to correctionRange: GlucoseRangeSchedule,
-        at date: Date = Date(),
+        at date: Date = simDate.currentDate(),
         suspendThreshold: HKQuantity?,
         sensitivity: InsulinSensitivitySchedule,
         model: InsulinModel,

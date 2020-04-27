@@ -104,7 +104,7 @@ class PredictionTableViewController: ChartsTableViewController, IdentifiableClas
         let calendar = Calendar.current
         var components = DateComponents()
         components.minute = 0
-        let date = Date(timeIntervalSinceNow: -TimeInterval(hours: 1))
+        let date = simDate.currentDate(timeIntervalSinceNow: -TimeInterval(hours: 1))
         chartStartDate = calendar.nextDate(after: date, matching: components, matchingPolicy: .strict, direction: .backward) ?? date
 
         let reloadGroup = DispatchGroup()
