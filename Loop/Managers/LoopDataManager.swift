@@ -49,7 +49,6 @@ final class LoopDataManager {
     
     let timer = Timer.scheduledTimer(withTimeInterval: SimDate.simSampleTime, repeats: true) { timer in
         simDate.incrementSimDate()
-        print("myLoop: \(SimDate.date)")
     }
 
     init(
@@ -1321,13 +1320,9 @@ extension LoopDataManager {
         if let standardDose = standardDosingRecommendation?.bolusUnits, standardDose > 0.0 {
             standardBolusDose = standardDose
         }
-        print("\n myLoop ----- \(simDate.currentDate()) ------")
-        print("myLoop standard bolus dose \(String(describing: standardBolusDose))")
 
         if let momentum = self.glucoseMomentumEffect, let lastMomentumEffect = momentum.last?.quantity.doubleValue(for: .milligramsPerDeciliter), lastMomentumEffect > 0.0 {
-            
-            print("myLoop lastMomentumEffect \(lastMomentumEffect)")
-            
+                        
             // super correction calculations
             let currentGlucoseValue = glucose.quantity.doubleValue(for: .milligramsPerDeciliter)
             let superCorrectionLowThreshold: Double = 100
@@ -1342,7 +1337,6 @@ extension LoopDataManager {
             default:
                 suspendDeliveryFraction = maximumSuspendDeliveryFraction * (currentGlucoseValue - superCorrectionLowThreshold) / (superCorrectionHighThreshold - superCorrectionLowThreshold)
             }
-            print("myLoop suspendDeliveryFraction \(suspendDeliveryFraction)")
             if suspendDeliveryFraction > 0.0 && settings.dosingStrategy == .automaticBolusSuperCorrection {
                 partialSuspendInsulinDeliveryEffect = fractionOfEffect(glucoseEffect: suspendInsulinDeliveryEffect, fraction: suspendDeliveryFraction)
                 var superCorrectionEnabledEffects = settings.enabledEffects
@@ -1396,7 +1390,6 @@ extension LoopDataManager {
         } else {
             recommendedDose = nil
         }
-        print("myLoop recommending dose: \(String(describing: dosingRecommendation)) at \(startDate)")
 
         let recommendation = predictedGlucoseIncludingPendingInsulin.recommendedManualBolus(
             to: glucoseTargetRange,

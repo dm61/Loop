@@ -60,6 +60,15 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         
+        #if targetEnvironment(simulator)
+            // TODO: invoke setting parameters here
+            print("myLoop: running on a simulator!")
+        #else
+            // should never let this Loop run on a real phone
+            print("myLoop: running on a real phone!")
+            return false
+        #endif
+        
         log.default("didFinishLaunchingWithOptions \(String(describing: launchOptions))")
         
         AnalyticsManager.shared.application(application, didFinishLaunchingWithOptions: launchOptions)
