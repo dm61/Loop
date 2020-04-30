@@ -11,7 +11,6 @@ import HealthKit
 import LoopKit
 import LoopCore
 
-
 final class LoopDataManager {
     enum LoopUpdateContext: Int {
         case bolus
@@ -37,7 +36,7 @@ final class LoopDataManager {
 
     // References to registered notification center observers
     private var notificationObservers: [Any] = []
-
+    
     deinit {
         for observer in notificationObservers {
             NotificationCenter.default.removeObserver(observer)
@@ -50,7 +49,7 @@ final class LoopDataManager {
     let timer = Timer.scheduledTimer(withTimeInterval: SimDate.simSampleTime, repeats: true) { timer in
         simDate.incrementSimDate()
     }
-
+    
     init(
         lastLoopCompleted: Date?,
         basalDeliveryState: PumpManagerStatus.BasalDeliveryState?,
@@ -743,6 +742,8 @@ extension LoopDataManager {
         dispatchPrecondition(condition: .onQueue(dataAccessQueue))
         let updateGroup = DispatchGroup()
 
+        simulationSettings() // setup parameters for simulation
+        
         // Fetch glucose effects as far back as we want to make retroactive analysis
         var latestGlucoseDate: Date?
         updateGroup.enter()
