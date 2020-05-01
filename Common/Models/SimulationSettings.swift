@@ -10,6 +10,7 @@ import Foundation
 import LoopKit
 import HealthKit
 import LoopCore
+import MockKit
 
 public func simulationSettings() {
     
@@ -24,54 +25,9 @@ public func simulationSettings() {
     
     let simulationMaximumBolus = 5.0
     let simulationMaximumBasalRatePerHour = 5.0
-
-    //let simulationCGMManager = MockCGMManager.self
     
-    /*
-    if let pumpManagerRawValue = UserDefaults.appGroup?.pumpManagerRawValue {
-        pumpManager = pumpManagerFromRawValue(pumpManagerRawValue)
-    } else {
-        pumpManager = nil
-    }
-
-    if let cgmManager = UserDefaults.appGroup?.cgmManager {
-        self.cgmManager = cgmManager
-    } else if isCGMManagerValidPumpManager {
-        self.cgmManager = pumpManager as? CGMManager
-    }*/
-    
-    
-    /*
-     extension UserDefaults {
-         private enum Key: String {
-             case pumpManagerState = "com.loopkit.Loop.PumpManagerState"
-         }
-
-         var pumpManagerRawValue: [String: Any]? {
-             get {
-                 return dictionary(forKey: Key.pumpManagerState.rawValue)
-             }
-             set {
-                 set(newValue, forKey: Key.pumpManagerState.rawValue)
-             }
-         }
-
-         var cgmManager: CGMManager? {
-             get {
-                 guard let rawValue = cgmManagerState else {
-                     return nil
-                 }
-
-                 return CGMManagerFromRawValue(rawValue)
-             }
-             set {
-                 cgmManagerState = newValue?.rawValue
-             }
-         }
-     }
-     */
-    
-    
+    MockCGMState.mockHumanGlucose = HKQuantity(unit: .milligramsPerDeciliter, doubleValue: 135)
+        
     // set user defaults
 
     UserDefaults.appGroup?.loopSettings?.dosingStrategy = simulationDosingStrategy

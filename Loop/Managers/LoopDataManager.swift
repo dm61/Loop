@@ -50,6 +50,8 @@ final class LoopDataManager {
         simDate.incrementSimDate()
     }
     
+    private var needToSetupSimulation: Bool = true
+    
     init(
         lastLoopCompleted: Date?,
         basalDeliveryState: PumpManagerStatus.BasalDeliveryState?,
@@ -741,8 +743,6 @@ extension LoopDataManager {
     fileprivate func update() throws {
         dispatchPrecondition(condition: .onQueue(dataAccessQueue))
         let updateGroup = DispatchGroup()
-
-        simulationSettings() // setup parameters for simulation
         
         // Fetch glucose effects as far back as we want to make retroactive analysis
         var latestGlucoseDate: Date?
@@ -1322,7 +1322,7 @@ extension LoopDataManager {
             standardBolusDose = standardDose
         }
 
-        if let momentum = self.glucoseMomentumEffect, let lastMomentumEffect = momentum.last?.quantity.doubleValue(for: .milligramsPerDeciliter), lastMomentumEffect > 0.0 {
+        if let momentum = self.glucoseMomentumEffect, let lastMomentumEffect = momentum.last?.quantity.doubleValue(for: .milligramsPerDeciliter), lastMomentumEffect >= 0.0 {
                         
             // super correction calculations
             let currentGlucoseValue = glucose.quantity.doubleValue(for: .milligramsPerDeciliter)

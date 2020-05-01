@@ -9,6 +9,7 @@
 import UIKit
 import Intents
 import LoopKit
+import MockKit
 import UserNotifications
 
 @UIApplicationMain
@@ -61,8 +62,15 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         
         #if targetEnvironment(simulator)
-            // TODO: invoke setting parameters here
             print("myLoop: running on a simulator!")
+        
+            let simulationCGMManagerType: CGMManager.Type = MockCGMManager.self
+            let simulationCGMManager = simulationCGMManagerType.init(rawState: [:])
+            UserDefaults.appGroup?.cgmManager = simulationCGMManager
+        
+            let simulationPumpManager: PumpManager = MockPumpManager()
+            UserDefaults.appGroup?.pumpManagerRawValue = simulationPumpManager.rawValue
+            simulationSettings()
         #else
             // should never let this Loop run on a real phone
             print("myLoop: running on a real phone!")
