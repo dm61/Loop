@@ -50,7 +50,7 @@ final class LoopDataManager {
         simDate.incrementSimDate()
     }
     
-    private var needToSetupSimulation: Bool = true
+    private let mockHumanModel: MockHumanModel = MockHumanModel()
     
     init(
         lastLoopCompleted: Date?,
@@ -1300,6 +1300,10 @@ extension LoopDataManager {
         } else {
             lastTempBasal = nil
         }
+        
+        // dm61 update moch human model glucose
+        mockHumanModel.nextGlucose(startingAt: glucose)
+        
         
         // dm61 standard dosing, may delete this part
         let standardDosingRecommendation: AutomaticDoseRecommendation?
