@@ -1302,8 +1302,8 @@ extension LoopDataManager {
         }
         
         // dm61 update moch human model glucose
-        mockHumanModel.nextGlucose(startingAt: glucose)
-        
+        let predictedGlucoseIncludingInsulinOnly = try predictGlucose(using: [.insulin], includingPendingInsulin: true)
+        mockHumanModel.nextGlucose(startingAt: glucose, predictedGlucose: predictedGlucoseIncludingInsulinOnly)
         
         // dm61 standard dosing, may delete this part
         let standardDosingRecommendation: AutomaticDoseRecommendation?
@@ -1326,13 +1326,13 @@ extension LoopDataManager {
             standardBolusDose = standardDose
         }
 
-        if let momentum = self.glucoseMomentumEffect, let lastMomentumEffect = momentum.last?.quantity.doubleValue(for: .milligramsPerDeciliter), lastMomentumEffect >= 0.0 {
+        if let momentum = self.glucoseMomentumEffect, let lastMomentumEffect = momentum.last?.quantity.doubleValue(for: .milligramsPerDeciliter), lastMomentumEffect >= -5.0 {
                         
             // super correction calculations
             let currentGlucoseValue = glucose.quantity.doubleValue(for: .milligramsPerDeciliter)
             let superCorrectionLowThreshold: Double = 100
-            let superCorrectionHighThreshold: Double = 180
-            let maximumSuspendDeliveryFraction = 0.8
+            let superCorrectionHighThreshold: Double = 140
+            let maximumSuspendDeliveryFraction = 0.5
             suspendDeliveryFraction = 0.0
             switch currentGlucoseValue {
             case let glucoseValue where glucoseValue <= superCorrectionLowThreshold:
@@ -1346,6 +1346,7 @@ extension LoopDataManager {
                 partialSuspendInsulinDeliveryEffect = fractionOfEffect(glucoseEffect: suspendInsulinDeliveryEffect, fraction: suspendDeliveryFraction)
                 var superCorrectionEnabledEffects = settings.enabledEffects
                 superCorrectionEnabledEffects.insert(.partialSuspendInsulinDelivery)
+                superCorrectionEnabledEffects.remove(.retrospection)
                 predictedGlucose = try predictGlucose(using: superCorrectionEnabledEffects)
                 predictedGlucoseIncludingPendingInsulin = try predictGlucose(using: superCorrectionEnabledEffects, includingPendingInsulin: true)
             }

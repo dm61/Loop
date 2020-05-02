@@ -14,26 +14,28 @@ import MockKit
 
 public func simulationSettings() {
     
-    let simulationBasalRateSchedule = BasalRateSchedule(dailyItems: [RepeatingScheduleValue(startTime: 0, value: 1.0)])!
-    let simulationInsulinSensitivitySchedule = InsulinSensitivitySchedule(unit: .milligramsPerDeciliter, dailyItems: [RepeatingScheduleValue(startTime: 0, value: 100.0)])!
-    let simluationCarbRatioSchedule = CarbRatioSchedule(unit: .gram(), dailyItems: [RepeatingScheduleValue(startTime: 0, value: 10.0)])!
-    let simulationGlucoseTargetRangeSchedule = GlucoseRangeSchedule(unit: .milligramsPerDeciliter, dailyItems: [RepeatingScheduleValue(startTime: 0, value: DoubleRange(minValue: 100, maxValue: 100))])!
+    let simulationBasalRateSchedule = BasalRateSchedule(dailyItems: [RepeatingScheduleValue(startTime: 0, value: 0.65)])!
+    let simulationInsulinSensitivitySchedule = InsulinSensitivitySchedule(unit: .milligramsPerDeciliter, dailyItems: [RepeatingScheduleValue(startTime: 0, value: 60.0)])!
+    let simulationCarbRatioSchedule = CarbRatioSchedule(unit: .gram(), dailyItems: [RepeatingScheduleValue(startTime: 0, value: 10.0)])!
+    let simulationGlucoseTargetRangeSchedule = GlucoseRangeSchedule(unit: .milligramsPerDeciliter, dailyItems: [RepeatingScheduleValue(startTime: 0, value: DoubleRange(minValue: 90, maxValue: 95))])!
 
-    let simulationSuspendThreshold = GlucoseThreshold(unit: .milligramsPerDeciliter, value: 70)
+    let simulationSuspendThreshold = GlucoseThreshold(unit: .milligramsPerDeciliter, value: 75)
     let simulationInsulinModelSettings = InsulinModelSettings(model: ExponentialInsulinModelPreset.humalogNovologAdult)
     let simulationDosingStrategy: DosingStrategy = .automaticBolus
     
-    let simulationMaximumBolus = 5.0
+    let simulationMaximumBolus = 10.0
     let simulationMaximumBasalRatePerHour = 5.0
     
-    MockCGMState.mockHumanGlucose = HKQuantity(unit: .milligramsPerDeciliter, doubleValue: 135)
+    MockCGMState.mockHumanGlucose = HKQuantity(unit: .milligramsPerDeciliter, doubleValue: 200)
+    
+    MockHumanModel.launchDate = simDate.currentDate()
         
     // set user defaults
 
     UserDefaults.appGroup?.loopSettings?.dosingStrategy = simulationDosingStrategy
     
     UserDefaults.appGroup?.basalRateSchedule = simulationBasalRateSchedule
-    UserDefaults.appGroup?.carbRatioSchedule = simluationCarbRatioSchedule
+    UserDefaults.appGroup?.carbRatioSchedule = simulationCarbRatioSchedule
     UserDefaults.appGroup?.insulinSensitivitySchedule = simulationInsulinSensitivitySchedule
     UserDefaults.appGroup?.loopSettings?.glucoseTargetRangeSchedule = simulationGlucoseTargetRangeSchedule
     UserDefaults.appGroup?.loopSettings?.dosingEnabled = true
