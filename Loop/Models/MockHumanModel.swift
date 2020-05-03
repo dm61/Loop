@@ -13,32 +13,67 @@ import MockKit
 
 class MockHumanModel {
     
-    public static var launchDate = simDate.currentDate()
+    private var initialDataDate: Date = simDate.currentDate()
     
+    private var firstDataPoint: Bool = false
+        
     private var elapsedTime: TimeInterval {
-        let currentDate = simDate.currentDate()
-        let elapsedTime = currentDate.timeIntervalSince(MockHumanModel.launchDate)
-        return elapsedTime
+        return simDate.currentDate().timeIntervalSince(initialDataDate)
     }
     
-    private var unannouncedCarbsGlucoseEffect: Double {
-        let startMealMinutes: Double = 360
-        let endMealMinutes: Double = 480
-        let effectAmplitude = 5.0
-        let scale = effectAmplitude * pow(2.0/(endMealMinutes - startMealMinutes), 2.0)
-        let time = elapsedTime.minutes
-        if time < startMealMinutes || time > endMealMinutes {
-            return 0.0
+    private let trueInsulinSensitivityMultiplier: Double = 1.0
+    
+    private var userSettingsISF: Double {
+        if let isf = UserDefaults.appGroup?.insulinSensitivitySchedule?.averageQuantity().doubleValue(for: .milligramsPerDeciliter) {
+            return isf
         } else {
-            return scale * (time - startMealMinutes) * (endMealMinutes - time)
+            return 100.0
+        }
+    }
+    
+    private var userSettingsCR: Double {
+        if let cr = UserDefaults.appGroup?.carbRatioSchedule?.averageQuantity().doubleValue(for: .gram()) {
+            return cr
+        } else {
+            return 10.0
+        }
+    }
+    
+    private var userSettingsCSF: Double {
+        return userSettingsISF / userSettingsCR
+    }
+    
+    let mealCarbs: Double = 50
+    let startMealMinutes: Double = 300
+    let mealDurationMinutes: Double = 60
+    let mealPeakMinutes: Double = 10
+    
+    private var unannouncedMealGlucoseEffect: Double {
+        
+        let mealPeakEffect = 2.0 * userSettingsCSF * mealCarbs / mealDurationMinutes
+        let time = elapsedTime.minutes - startMealMinutes
+        switch time {
+        case let t where t <= 0:
+            return 0.0
+        case let t where t > 0.0 && t <= mealPeakMinutes:
+            return mealPeakEffect * t / mealPeakMinutes
+        case let t where t > mealPeakMinutes && t <= mealDurationMinutes:
+            return mealPeakEffect * (mealDurationMinutes - t) / (mealDurationMinutes - mealPeakMinutes)
+        default:
+            return 0.0
         }
     }
     
     public func nextGlucose(startingAt currentGlucose: GlucoseValue, predictedGlucose: [PredictedGlucoseValue]) {
         let currentGlucoseValue = currentGlucose.quantity.doubleValue(for: .milligramsPerDeciliter)
         var nextGlucoseValue = predictedGlucose[1].quantity.doubleValue(for: .milligramsPerDeciliter)
-        if nextGlucoseValue != currentGlucoseValue  {
-            nextGlucoseValue = nextGlucoseValue + unannouncedCarbsGlucoseEffect
+        let trueInsulinEffect = trueInsulinSensitivityMultiplier * (nextGlucoseValue - currentGlucoseValue)
+        if trueInsulinEffect != 0.0  {
+            if !firstDataPoint {
+                initialDataDate = currentGlucose.startDate
+                firstDataPoint = true
+            }
+            nextGlucoseValue = currentGlucoseValue + trueInsulinEffect + unannouncedMealGlucoseEffect
             let nextGlucose = HKQuantity(unit: .milligramsPerDeciliter, doubleValue: nextGlucoseValue)
             MockCGMState.mockHumanGlucose = nextGlucose
         }

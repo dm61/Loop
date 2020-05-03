@@ -1319,6 +1319,7 @@
 				9E38926622F4C97900AC2801 /* ParameterEstimation.swift */,
 				C165B8CD23302C5D0004112E /* RemoteCommand.swift */,
 				9EA23E68245BE322006FC668 /* MockHumanModel.swift */,
+				9E26CA32245A04AE000FB188 /* SimulationSettings.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -1828,7 +1829,6 @@
 				4F7E8AC620E2AC0300AEA65E /* WatchPredictedGlucose.swift */,
 				43C3B6F620BBCAA30026CAFA /* PumpManager.swift */,
 				C1FB428E217921D600FAB378 /* PumpManagerUI.swift */,
-				9E26CA32245A04AE000FB188 /* SimulationSettings.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
