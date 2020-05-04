@@ -1301,38 +1301,22 @@ extension LoopDataManager {
             lastTempBasal = nil
         }
         
-        // dm61 update moch human model glucose
+        // dm61 update mock human model glucose
         let predictedGlucoseIncludingInsulinOnly = try predictGlucose(using: [.insulin], includingPendingInsulin: true)
         mockHumanModel.nextGlucose(startingAt: glucose, predictedGlucose: predictedGlucoseIncludingInsulinOnly)
         
-        // dm61 standard dosing, may delete this part
-        let standardDosingRecommendation: AutomaticDoseRecommendation?
-        standardDosingRecommendation = predictedGlucose.recommendedAutomaticDose(
-            to: glucoseTargetRange,
-            at: predictedGlucose[0].startDate,
-            suspendThreshold: settings.suspendThreshold?.quantity,
-            sensitivity: insulinSensitivity,
-            model: model,
-            basalRates: basalRates,
-            maxAutomaticBolus: maxBolus * settings.bolusPartialApplicationFactor,
-            partialApplicationFactor: settings.bolusPartialApplicationFactor,
-            lastTempBasal: lastTempBasal,
-            volumeRounder: volumeRounder,
-            rateRounder: rateRounder,
-            isBasalRateScheduleOverrideActive: settings.scheduleOverride?.isBasalRateScheduleOverriden(at: startDate) == true
-        )
-        standardBolusDose = nil
-        if let standardDose = standardDosingRecommendation?.bolusUnits, standardDose > 0.0 {
-            standardBolusDose = standardDose
-        }
+        // dm61 super correction feature parameters (should move to settings)
+        let superCorrectionLowThreshold: Double = 120
+        let superCorrectionHighThreshold: Double = 180
+        let maximumSuspendDeliveryFraction = 0.5
+        let currentGlucoseValue = glucose.quantity.doubleValue(for: .milligramsPerDeciliter)
 
-        if let momentum = self.glucoseMomentumEffect, let lastMomentumEffect = momentum.last?.quantity.doubleValue(for: .milligramsPerDeciliter), lastMomentumEffect >= -5.0 {
+        // super correction only if glucose > minimum threshold and climbing
+        if settings.dosingStrategy == .automaticBolusSuperCorrection,
+            currentGlucoseValue > superCorrectionLowThreshold,
+            let momentum = self.glucoseMomentumEffect,
+            let lastMomentumEffect = momentum.last?.quantity.doubleValue(for: .milligramsPerDeciliter), lastMomentumEffect >= -5.0 {
                         
-            // super correction calculations
-            let currentGlucoseValue = glucose.quantity.doubleValue(for: .milligramsPerDeciliter)
-            let superCorrectionLowThreshold: Double = 100
-            let superCorrectionHighThreshold: Double = 140
-            let maximumSuspendDeliveryFraction = 0.5
             suspendDeliveryFraction = 0.0
             switch currentGlucoseValue {
             case let glucoseValue where glucoseValue <= superCorrectionLowThreshold:
@@ -1342,17 +1326,15 @@ extension LoopDataManager {
             default:
                 suspendDeliveryFraction = maximumSuspendDeliveryFraction * (currentGlucoseValue - superCorrectionLowThreshold) / (superCorrectionHighThreshold - superCorrectionLowThreshold)
             }
-            if suspendDeliveryFraction > 0.0 && settings.dosingStrategy == .automaticBolusSuperCorrection {
-                partialSuspendInsulinDeliveryEffect = fractionOfEffect(glucoseEffect: suspendInsulinDeliveryEffect, fraction: suspendDeliveryFraction)
-                var superCorrectionEnabledEffects = settings.enabledEffects
-                superCorrectionEnabledEffects.insert(.partialSuspendInsulinDelivery)
+            partialSuspendInsulinDeliveryEffect = fractionOfEffect(glucoseEffect: suspendInsulinDeliveryEffect, fraction: suspendDeliveryFraction)
+            var superCorrectionEnabledEffects = settings.enabledEffects
+            superCorrectionEnabledEffects.insert(.partialSuspendInsulinDelivery)
+            if let retrospectiveEffect = self.retrospectiveGlucoseEffect.last?.quantity.doubleValue(for: .milligramsPerDeciliter), retrospectiveEffect > 0.0 {
                 superCorrectionEnabledEffects.remove(.retrospection)
-                predictedGlucose = try predictGlucose(using: superCorrectionEnabledEffects)
-                predictedGlucoseIncludingPendingInsulin = try predictGlucose(using: superCorrectionEnabledEffects, includingPendingInsulin: true)
             }
-            
+            predictedGlucose = try predictGlucose(using: superCorrectionEnabledEffects)
+            predictedGlucoseIncludingPendingInsulin = try predictGlucose(using: superCorrectionEnabledEffects, includingPendingInsulin: true)
         }
-        
 
         let dosingRecommendation: AutomaticDoseRecommendation?
 
