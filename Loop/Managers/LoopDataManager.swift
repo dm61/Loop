@@ -1306,9 +1306,9 @@ extension LoopDataManager {
         mockHumanModel.nextGlucose(startingAt: glucose, predictedGlucose: predictedGlucoseIncludingInsulinOnly)
         
         // dm61 super correction feature parameters (should move to settings)
-        let superCorrectionLowThreshold: Double = 120
+        let superCorrectionLowThreshold: Double = 140
         let superCorrectionHighThreshold: Double = 180
-        let maximumSuspendDeliveryFraction = 0.5
+        let maximumSuspendDeliveryFraction = 0.75
         let currentGlucoseValue = glucose.quantity.doubleValue(for: .milligramsPerDeciliter)
 
         // super correction only if glucose > minimum threshold and climbing
@@ -1316,10 +1316,10 @@ extension LoopDataManager {
             currentGlucoseValue > superCorrectionLowThreshold,
             let momentum = self.glucoseMomentumEffect,
             let lastMomentumEffect = momentum.last?.quantity.doubleValue(for: .milligramsPerDeciliter), lastMomentumEffect >= -5.0 {
-                        
+                                    
             suspendDeliveryFraction = 0.0
             switch currentGlucoseValue {
-            case let glucoseValue where glucoseValue <= superCorrectionLowThreshold:
+            case let glucoseValue where glucoseValue < superCorrectionLowThreshold:
                 suspendDeliveryFraction = 0.0
             case let glucoseValue where glucoseValue >= superCorrectionHighThreshold:
                 suspendDeliveryFraction = maximumSuspendDeliveryFraction

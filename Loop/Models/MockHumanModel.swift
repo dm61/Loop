@@ -44,13 +44,13 @@ class MockHumanModel {
     }
     
     let mealCarbs: Double = 50
-    let startMealMinutes: Double = 300
-    let mealDurationMinutes: Double = 60
-    let mealPeakMinutes: Double = 10
+    let startMealMinutes: Double = 240
+    let mealDurationMinutes: Double = 240
+    let mealPeakMinutes: Double = 90
     
     private var unannouncedMealGlucoseEffect: Double {
         
-        let mealPeakEffect = 2.0 * userSettingsCSF * mealCarbs / mealDurationMinutes
+        let mealPeakEffect = 10.0 * userSettingsCSF * mealCarbs / mealDurationMinutes
         let time = elapsedTime.minutes - startMealMinutes
         switch time {
         case let t where t <= 0:
@@ -78,7 +78,5 @@ class MockHumanModel {
             MockCGMState.mockHumanGlucose = nextGlucose
         }
     }
-    
-
     
 }
