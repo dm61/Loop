@@ -33,7 +33,7 @@ public extension DosingStrategy {
         case .automaticBolus:
             return NSLocalizedString("Loop will automatically bolus when bg is predicted to be higher than correction range, and will use temp basals when bg is predicted to be lower than correction range.", comment: "Description string for automatic bolus dosing strategy")
         case .automaticBolusSuperCorrection:
-            return NSLocalizedString("Loop may automatically deliver a larger correction bolus when bg is elevated and is increasing. The correction takes into account anticipated partial reduction in basal insulin delivery.", comment: "Description string for automatic bolus with super correction dosing strategy")
+            return NSLocalizedString("Loop will automatically deliver a larger correction bolus when bg is elevated and is increasing. The correction takes into account anticipated partial reduction in basal insulin delivery.", comment: "Description string for automatic bolus with super correction dosing strategy")
         }
     }
 }
