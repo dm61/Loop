@@ -1297,10 +1297,10 @@ extension LoopDataManager {
         }
         
         // dm61 super correction feature parameters (should move to settings)
-        let superCorrectionLowThreshold: Double = 120
+        let superCorrectionLowThreshold: Double = 140
         let superCorrectionHighThreshold: Double = 180
         let minimumSuspendDeliveryFraction = 0.25
-        let maximumSuspendDeliveryFraction = 0.75
+        let maximumSuspendDeliveryFraction = 0.50
         
         let currentGlucoseValue = glucose.quantity.doubleValue(for: .milligramsPerDeciliter)
         
