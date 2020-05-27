@@ -1297,10 +1297,10 @@ extension LoopDataManager {
         }
         
         // dm61 super correction feature parameters (should move to settings)
-        let superCorrectionLowThreshold: Double = 140
+        let superCorrectionLowThreshold: Double = 120
         let superCorrectionHighThreshold: Double = 180
-        let minimumSuspendDeliveryFraction = 0.25
-        let maximumSuspendDeliveryFraction = 0.50
+        let minimumSuspendDeliveryFraction = 0.2
+        let maximumSuspendDeliveryFraction = 0.6
         
         let currentGlucoseValue = glucose.quantity.doubleValue(for: .milligramsPerDeciliter)
         
@@ -1308,19 +1308,17 @@ extension LoopDataManager {
         if settings.dosingStrategy == .automaticBolusSuperCorrection,
             currentGlucoseValue > superCorrectionLowThreshold,
             let momentum = self.glucoseMomentumEffect,
-            let lastMomentumEffect = momentum.last?.quantity.doubleValue(for: .milligramsPerDeciliter), lastMomentumEffect >= -5.0 {
+            let lastMomentumEffect = momentum.last?.quantity.doubleValue(for: .milligramsPerDeciliter), lastMomentumEffect >= -1.0 {
             
             suspendDeliveryFraction = 0.0
-            let anticipatedGlucoseValue = currentGlucoseValue + lastMomentumEffect
-            switch anticipatedGlucoseValue {
+            switch currentGlucoseValue {
             case let glucoseValue where glucoseValue < superCorrectionLowThreshold:
                 suspendDeliveryFraction = minimumSuspendDeliveryFraction
             case let glucoseValue where glucoseValue >= superCorrectionHighThreshold:
                 suspendDeliveryFraction = maximumSuspendDeliveryFraction
             default:
-                suspendDeliveryFraction = minimumSuspendDeliveryFraction +  (maximumSuspendDeliveryFraction - minimumSuspendDeliveryFraction) * (anticipatedGlucoseValue - superCorrectionLowThreshold) / (superCorrectionHighThreshold - superCorrectionLowThreshold)
+                suspendDeliveryFraction = minimumSuspendDeliveryFraction +  (maximumSuspendDeliveryFraction - minimumSuspendDeliveryFraction) * (currentGlucoseValue - superCorrectionLowThreshold) / (superCorrectionHighThreshold - superCorrectionLowThreshold)
             }
-            print("myLoop: suspend fraction: \(partialSuspendInsulinDeliveryEffect)")
             partialSuspendInsulinDeliveryEffect = fractionOfEffect(glucoseEffect: suspendInsulinDeliveryEffect, fraction: suspendDeliveryFraction)
             var superCorrectionEnabledEffects = settings.enabledEffects
             superCorrectionEnabledEffects.insert(.partialSuspendInsulinDelivery)
