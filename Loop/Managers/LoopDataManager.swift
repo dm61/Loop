@@ -46,6 +46,12 @@ final class LoopDataManager {
 
     // Make overall retrospective effect available for display to the user
     var totalRetrospectiveCorrection: HKQuantity?
+    
+    // dm61 super correction feature parameters (TODO move to settings)
+    private let superCorrectionLowThreshold: Double = 120 // mg/dL
+    private let superCorrectionHighThreshold: Double = 180 // mg/dL
+    private let minimumSuspendDeliveryFraction: Double = 0.2
+    private let maximumSuspendDeliveryFraction: Double = 0.6
 
     init(
         lastLoopCompleted: Date?,
@@ -1295,12 +1301,6 @@ extension LoopDataManager {
         } else {
             lastTempBasal = nil
         }
-        
-        // dm61 super correction feature parameters (should move to settings)
-        let superCorrectionLowThreshold: Double = 120
-        let superCorrectionHighThreshold: Double = 180
-        let minimumSuspendDeliveryFraction = 0.2
-        let maximumSuspendDeliveryFraction = 0.6
         
         let currentGlucoseValue = glucose.quantity.doubleValue(for: .milligramsPerDeciliter)
         
