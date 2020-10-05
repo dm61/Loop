@@ -309,7 +309,8 @@ class EstimationInterval {
             let basalEffect = self.basalEffect?.filterDateRange(start, end),
             glucose.count > 5
             else {
-                return( nil )
+            let noEstimatedParameters: EstimatedMultipliers? = nil
+                return( noEstimatedParameters )
         }
         
         guard
@@ -320,7 +321,8 @@ class EstimationInterval {
             let startBasal = basalEffect.first?.quantity.doubleValue(for: unit),
             let endBasal = basalEffect.last?.quantity.doubleValue(for: unit)
             else {
-                return( nil )
+            let noEstimatedParameters: EstimatedMultipliers? = nil
+                return( noEstimatedParameters )
         }
         
         let deltaGlucose = endGlucose - startGlucose
