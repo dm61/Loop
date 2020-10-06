@@ -50,7 +50,7 @@ final class LoopDataManager {
     // dm61 super correction feature parameters (TODO move to settings)
     private let superCorrectionLowThreshold: Double = 120 // mg/dL
     private let superCorrectionHighThreshold: Double = 180 // mg/dL
-    private let minimumSuspendDeliveryFraction: Double = 0.2
+    private let minimumSuspendDeliveryFraction: Double = 0.3
     private let maximumSuspendDeliveryFraction: Double = 0.6
 
     init(
@@ -1323,9 +1323,10 @@ extension LoopDataManager {
             partialSuspendInsulinDeliveryEffect = fractionOfEffect(glucoseEffect: suspendInsulinDeliveryEffect, fraction: suspendDeliveryFraction)
             var superCorrectionEnabledEffects = settings.enabledEffects
             superCorrectionEnabledEffects.insert(.partialSuspendInsulinDelivery)
-            if let retrospectiveEffect = self.retrospectiveGlucoseEffect.last?.quantity.doubleValue(for: .milligramsPerDeciliter), retrospectiveEffect > 0.0 {
-                superCorrectionEnabledEffects.remove(.retrospection)
-            }
+            // uncommend the 3 lines below to remove positive RC effect from prediction used for SC dosing
+            // if let retrospectiveEffect = self.retrospectiveGlucoseEffect.last?.quantity.doubleValue(for: .milligramsPerDeciliter), retrospectiveEffect > 0.0 {
+            //    superCorrectionEnabledEffects.remove(.retrospection)
+            //}
             predictedGlucose = try predictGlucose(using: superCorrectionEnabledEffects)
             predictedGlucoseIncludingPendingInsulin = try predictGlucose(using: superCorrectionEnabledEffects, includingPendingInsulin: true)
         }
