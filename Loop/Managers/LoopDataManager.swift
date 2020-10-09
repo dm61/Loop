@@ -1309,7 +1309,7 @@ extension LoopDataManager {
         if settings.dosingStrategy == .automaticBolusSuperCorrection,
             currentGlucoseValue > superCorrectionLowThreshold,
             let momentum = self.glucoseMomentumEffect,
-            let lastMomentumEffect = momentum.last?.quantity.doubleValue(for: .milligramsPerDeciliter), lastMomentumEffect >= -1.0 {
+            let lastMomentumEffect = momentum.last?.quantity.doubleValue(for: .milligramsPerDeciliter), lastMomentumEffect >= -5.0 {
             
             suspendDeliveryFraction = 0.0
             switch currentGlucoseValue {
