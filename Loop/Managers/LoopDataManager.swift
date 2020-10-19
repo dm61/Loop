@@ -81,7 +81,7 @@ final class LoopDataManager {
             carbRatioSchedule: carbRatioSchedule,
             insulinSensitivitySchedule: insulinSensitivitySchedule,
             overrideHistory: overrideHistory,
-            carbAbsorptionModel: .nonlinear
+            carbAbsorptionModel: .adaptiveRateNonlinear
         )
 
         totalRetrospectiveCorrection = nil
