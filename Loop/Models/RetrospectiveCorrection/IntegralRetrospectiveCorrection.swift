@@ -37,11 +37,11 @@ class IntegralRetrospectiveCorrection: RetrospectiveCorrection {
      - retrospectiveCorrectionIntegrationInterval: Maximum duration over which to integrate retrospective correction changes
     */
     static let currentDiscrepancyGain: Double = 1.0
-    static let persistentDiscrepancyGain: Double = 5.0
-    static let correctionTimeConstant: TimeInterval = TimeInterval(minutes: 90.0)
+    static let persistentDiscrepancyGain: Double = 2.0 // was 5.0
+    static let correctionTimeConstant: TimeInterval = TimeInterval(minutes: 60.0) // was 90.0
     static let differentialGain: Double = 2.0
     static let delta: TimeInterval = TimeInterval(minutes: 5.0)
-    static let maximumCorrectionEffectDuration: TimeInterval = TimeInterval(minutes: 240.0)
+    static let maximumCorrectionEffectDuration: TimeInterval = TimeInterval(minutes: 180.0) // was 240.0
     
     /// Initialize computed integral retrospective correction parameters
     static let integralForget: Double = exp( -delta.minutes / correctionTimeConstant.minutes )
