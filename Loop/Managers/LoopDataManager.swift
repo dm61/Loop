@@ -266,6 +266,8 @@ final class LoopDataManager: LoopSettingsAlerterDelegate {
     }
 
     private var retrospectiveGlucoseDiscrepanciesSummed: [GlucoseChange]?
+    
+    private var suspendInsulinDeliveryEffect: [GlucoseEffect] = []
 
     fileprivate var predictedGlucose: [PredictedGlucoseValue]? {
         didSet {
@@ -1422,6 +1424,32 @@ extension LoopDataManager {
             glucoseCorrectionRangeSchedule: settings.glucoseTargetRangeSchedule,
             retrospectiveCorrectionGroupingInterval: LoopConstants.retrospectiveCorrectionGroupingInterval
         )
+    }
+    
+
+    /// Generates a glucose prediction effect of zero temping over duration of insulin action starting at current date
+    ///
+    /// - Throws: LoopError.configurationError
+    private func updateSuspendInsulinDeliveryEffect() throws {
+        dispatchPrecondition(condition: .onQueue(dataAccessQueue))
+
+        // Get settings, otherwise clear effect and throw error
+        guard
+            let insulinSensitivity = insulinSensitivitySchedule,
+            let basalRateSchedule = basalRateSchedule
+            else {
+                suspendInsulinDeliveryEffect = []
+                throw LoopError.configurationError(.generalSettings)
+        }
+        
+        let insulinModel = doseStore.insulinModelProvider.model(for: pumpInsulinType)
+        let insulinActionDuration = insulinModel.effectDuration
+
+        // generate effect of suspending insulin delivery by setting temp basal rate to zero
+        let startZeroTempDose = now()
+        let endZeroTempDose = startZeroTempDose.addingTimeInterval(insulinActionDuration)
+        let zeroTemp = DoseEntry(type: .tempBasal, startDate: startZeroTempDose, endDate: endZeroTempDose, value: 0.0, unit: DoseUnit.unitsPerHour)
+        suspendInsulinDeliveryEffect = zeroTemp.tempBasalGlucoseEffects(insulinModelProvider: doseStore.insulinModelProvider, longestEffectDuration: doseStore.longestEffectDuration, insulinSensitivity: insulinSensitivity, basalRateSchedule: basalRateSchedule).filterDateRange(startZeroTempDose, endZeroTempDose)
     }
 
     /// Runs the glucose prediction on the latest effect data.
