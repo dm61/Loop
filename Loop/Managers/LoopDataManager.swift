@@ -998,6 +998,12 @@ extension LoopDataManager {
                 logger.error("%{public}@", String(describing: error))
             }
         }
+        
+        do {
+            try updateSuspendInsulinDeliveryEffect()
+        } catch let error {
+            logger.error("%{public}@", String(describing: error))
+        }
 
         if predictedGlucose == nil {
             do {
@@ -1170,6 +1176,10 @@ extension LoopDataManager {
 
         if inputs.contains(.retrospection) {
             effects.append(retrospectiveGlucoseEffect)
+        }
+        
+        if inputs.contains(.suspendInsulinDelivery) {
+            effects.append(suspendInsulinDeliveryEffect)
         }
 
         var prediction = LoopMath.predictGlucose(startingAt: glucose, momentum: momentum, effects: effects)
@@ -1944,6 +1954,7 @@ extension LoopDataManager {
 
                 "glucoseMomentumEffect: \(manager.glucoseMomentumEffect ?? [])",
                 "retrospectiveGlucoseEffect: \(manager.retrospectiveGlucoseEffect)",
+                "suspendInsulinDeliveryEffect: \(manager.suspendInsulinDeliveryEffect)",
                 "recommendedAutomaticDose: \(String(describing: state.recommendedAutomaticDose))",
                 "recommendedBolus: \(String(describing: state.recommendedBolus))",
                 "lastBolus: \(String(describing: manager.lastRequestedBolus))",

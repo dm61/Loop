@@ -49,7 +49,7 @@ struct PredictionInputEffect: OptionSet {
         case [.retrospection]:
             return NSLocalizedString("30 min comparison of glucose prediction vs actual, continued with decay over 60 min", comment: "Description of the prediction input effect for retrospective correction")
         case [.suspendInsulinDelivery]:
-            return NSLocalizedString("Glucose effect of suspending insulin delivery by setting temporary basal rate to zero", comment: "Description of the prediction input effect for setting temporary basal rate to zero")
+            return NSLocalizedString("Glucose effect of suspending insulin delivery", comment: "Description of the prediction input effect for setting temporary basal rate to zero")
         default:
             return nil
         }
