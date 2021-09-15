@@ -1461,6 +1461,22 @@ extension LoopDataManager {
         let zeroTemp = DoseEntry(type: .tempBasal, startDate: startZeroTempDose, endDate: endZeroTempDose, value: 0.0, unit: DoseUnit.unitsPerHour)
         suspendInsulinDeliveryEffect = zeroTemp.tempBasalGlucoseEffects(insulinModelProvider: doseStore.insulinModelProvider, longestEffectDuration: doseStore.longestEffectDuration, insulinSensitivity: insulinSensitivity, basalRateSchedule: basalRateSchedule).filterDateRange(startZeroTempDose, endZeroTempDose)
     }
+    
+    /// Generates glucose effect scaled by a multiplier
+    ///
+    private func scaledGlucoseEffect(glucoseEffect: [GlucoseEffect], effectMultiplier: Double) -> [GlucoseEffect] {
+        var scaledGlucoseEffect: [GlucoseEffect] = []
+        guard let initialEffectValue = glucoseEffect.first?.quantity.doubleValue(for: .milligramsPerDeciliter) else {
+            return scaledGlucoseEffect
+        }
+        for effect in glucoseEffect {
+            let effectValue = effect.quantity.doubleValue(for: .milligramsPerDeciliter)
+            let scaledEffectValue = initialEffectValue + effectMultiplier * (effectValue - initialEffectValue)
+            let scaledEffect = GlucoseEffect(startDate: effect.startDate, quantity: HKQuantity(unit: .milligramsPerDeciliter, doubleValue: scaledEffectValue))
+            scaledGlucoseEffect.append(scaledEffect)
+        }
+        return scaledGlucoseEffect
+    }
 
     /// Runs the glucose prediction on the latest effect data.
     ///
