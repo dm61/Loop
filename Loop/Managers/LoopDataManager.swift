@@ -1563,11 +1563,10 @@ extension LoopDataManager {
         let dosingRecommendation: AutomaticDoseRecommendation?
         
         switch settings.dosingStrategy {
-        case .automaticBolus:
+        case .automaticBolus, .automaticBolusSuperCorrection:
             let volumeRounder = { (_ units: Double) in
                 return self.delegate?.loopDataManager(self, roundBolusVolume: units) ?? units
             }
-
             dosingRecommendation = predictedGlucose.recommendedAutomaticDose(
                 to: glucoseTargetRange,
                 at: predictedGlucose[0].startDate,
