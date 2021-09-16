@@ -268,6 +268,12 @@ final class LoopDataManager: LoopSettingsAlerterDelegate {
     private var retrospectiveGlucoseDiscrepanciesSummed: [GlucoseChange]?
     
     private var suspendInsulinDeliveryEffect: [GlucoseEffect] = []
+    
+    private var partialSuspendInsulinDeliveryEffect: [GlucoseEffect] = []
+    
+    private var suspendDeliveryFraction: Double = 0.0
+    
+    private var standardBolusDose: Double?
 
     fileprivate var predictedGlucose: [PredictedGlucoseValue]? {
         didSet {
@@ -1524,9 +1530,9 @@ extension LoopDataManager {
             throw LoopError.missingDataError(.insulinEffect)
         }
 
-        let predictedGlucose = try predictGlucose(using: settings.enabledEffects)
+        var predictedGlucose = try predictGlucose(using: settings.enabledEffects)
         self.predictedGlucose = predictedGlucose
-        let predictedGlucoseIncludingPendingInsulin = try predictGlucose(using: settings.enabledEffects, includingPendingInsulin: true)
+        var predictedGlucoseIncludingPendingInsulin = try predictGlucose(using: settings.enabledEffects, includingPendingInsulin: true)
         self.predictedGlucoseIncludingPendingInsulin = predictedGlucoseIncludingPendingInsulin
 
         guard
@@ -1558,6 +1564,30 @@ extension LoopDataManager {
             lastTempBasal = dose
         } else {
             lastTempBasal = nil
+        }
+        
+
+        let currentGlucoseValue = glucose.quantity.doubleValue(for: .milligramsPerDeciliter)
+        // dm61 super correction only if glucose > minimum threshold and climbing
+        if settings.dosingStrategy == .automaticBolusSuperCorrection,
+           currentGlucoseValue > LoopConstants.superCorrectionLowThreshold,
+            let momentum = self.glucoseMomentumEffect,
+            let lastMomentumEffect = momentum.last?.quantity.doubleValue(for: .milligramsPerDeciliter), lastMomentumEffect >= -5.0 {
+            
+            suspendDeliveryFraction = 0.0
+            switch currentGlucoseValue {
+            case let glucoseValue where glucoseValue < LoopConstants.superCorrectionLowThreshold:
+                suspendDeliveryFraction = LoopConstants.minimumSuspendDeliveryFraction
+            case let glucoseValue where glucoseValue >= LoopConstants.superCorrectionHighThreshold:
+                suspendDeliveryFraction = LoopConstants.maximumSuspendDeliveryFraction
+            default:
+                suspendDeliveryFraction = LoopConstants.minimumSuspendDeliveryFraction +  (LoopConstants.maximumSuspendDeliveryFraction - LoopConstants.minimumSuspendDeliveryFraction) * (currentGlucoseValue - LoopConstants.superCorrectionLowThreshold) / (LoopConstants.superCorrectionHighThreshold - LoopConstants.superCorrectionLowThreshold)
+            }
+            partialSuspendInsulinDeliveryEffect = scaledGlucoseEffect(glucoseEffect: suspendInsulinDeliveryEffect, effectMultiplier: suspendDeliveryFraction)
+            var superCorrectionEnabledEffects = settings.enabledEffects
+            superCorrectionEnabledEffects.insert(.partialSuspendInsulinDelivery)
+            predictedGlucose = try predictGlucose(using: superCorrectionEnabledEffects)
+            predictedGlucoseIncludingPendingInsulin = try predictGlucose(using: superCorrectionEnabledEffects, includingPendingInsulin: true)
         }
         
         let dosingRecommendation: AutomaticDoseRecommendation?
@@ -1968,8 +1998,17 @@ extension LoopDataManager {
                 "]",
 
                 "glucoseMomentumEffect: \(manager.glucoseMomentumEffect ?? [])",
+                "",
                 "retrospectiveGlucoseEffect: \(manager.retrospectiveGlucoseEffect)",
+                "",
                 "suspendInsulinDeliveryEffect: \(manager.suspendInsulinDeliveryEffect)",
+                "",
+                "fraction of insulin delivery suspension effect: \(String( manager.suspendDeliveryFraction))",
+                "",
+                "partialSuspendInsulinDeliveryEffect: \(manager.partialSuspendInsulinDeliveryEffect)",
+                "",
+                "standard bolus dose: \(String(describing: manager.standardBolusDose))",
+                "",
                 "recommendedAutomaticDose: \(String(describing: state.recommendedAutomaticDose))",
                 "recommendedBolus: \(String(describing: state.recommendedBolus))",
                 "lastBolus: \(String(describing: manager.lastRequestedBolus))",
