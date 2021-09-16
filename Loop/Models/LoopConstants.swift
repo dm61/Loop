@@ -46,6 +46,7 @@ enum LoopConstants {
     // (dm61 wip) Super correction feature parameters
     static let superCorrectionLowThreshold: Double = 120 // mg/dL
     static let superCorrectionHighThreshold: Double = 180 // mg/dL
+    static let supperCorrectionMomentumThreshold: Double = -5 // mg/dL
     static let minimumSuspendDeliveryFraction: Double = 0.2
     static let maximumSuspendDeliveryFraction: Double = 0.5
 

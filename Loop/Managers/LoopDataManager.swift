@@ -1187,6 +1187,10 @@ extension LoopDataManager {
         if inputs.contains(.suspendInsulinDelivery) {
             effects.append(suspendInsulinDeliveryEffect)
         }
+        
+        if inputs.contains(.partialSuspendInsulinDelivery) {
+            effects.append(partialSuspendInsulinDeliveryEffect)
+        }
 
         var prediction = LoopMath.predictGlucose(startingAt: glucose, momentum: momentum, effects: effects)
 
@@ -1567,12 +1571,13 @@ extension LoopDataManager {
         }
         
 
-        let currentGlucoseValue = glucose.quantity.doubleValue(for: .milligramsPerDeciliter)
         // dm61 super correction only if glucose > minimum threshold and climbing
+        let currentGlucoseValue = glucose.quantity.doubleValue(for: .milligramsPerDeciliter)
+
         if settings.dosingStrategy == .automaticBolusSuperCorrection,
            currentGlucoseValue > LoopConstants.superCorrectionLowThreshold,
             let momentum = self.glucoseMomentumEffect,
-            let lastMomentumEffect = momentum.last?.quantity.doubleValue(for: .milligramsPerDeciliter), lastMomentumEffect >= -5.0 {
+            let lastMomentumEffect = momentum.last?.quantity.doubleValue(for: .milligramsPerDeciliter), lastMomentumEffect >= LoopConstants.supperCorrectionMomentumThreshold {
             
             suspendDeliveryFraction = 0.0
             switch currentGlucoseValue {
