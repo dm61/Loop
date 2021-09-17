@@ -24,6 +24,22 @@ public extension DosingStrategy {
     }
 }
 
+public enum RetrospectiveCorrection: Int, CaseIterable {
+    case standardRetrospectiveCorrection
+    case integralRetrospectiveCorrection
+}
+
+public extension RetrospectiveCorrection {
+    var title: String {
+        switch self {
+        case .standardRetrospectiveCorrection:
+            return NSLocalizedString("Standard Retrospective Correction", comment: "Title string for standard retrospective correction")
+        case .integralRetrospectiveCorrection:
+            return NSLocalizedString("Integral Retrospective Correction", comment: "Title string for integral retrospective correction")
+        }
+    }
+}
+
 public struct LoopSettings: Equatable {
     public var isScheduleOverrideInfiniteWorkout: Bool {
         guard let scheduleOverride = scheduleOverride else { return false }
@@ -75,6 +91,8 @@ public struct LoopSettings: Equatable {
     public var suspendThreshold: GlucoseThreshold? = nil
     
     public var dosingStrategy: DosingStrategy = .tempBasalOnly
+    
+    public var retrospectiveCorrection: RetrospectiveCorrection = .standardRetrospectiveCorrection
 
     public var glucoseUnit: HKUnit? {
         return glucoseTargetRangeSchedule?.unit
@@ -296,6 +314,11 @@ extension LoopSettings: RawRepresentable {
             let dosingStrategy = DosingStrategy(rawValue: rawDosingStrategy) {
             self.dosingStrategy = dosingStrategy
         }
+        
+        if let rawRetrospectiveCorrection = rawValue["retrospectiveCorrection"] as? RetrospectiveCorrection.RawValue,
+            let retrospectiveCorrection = RetrospectiveCorrection(rawValue: rawRetrospectiveCorrection) {
+            self.retrospectiveCorrection = retrospectiveCorrection
+        }
     }
 
     public var rawValue: RawValue {
@@ -315,6 +338,7 @@ extension LoopSettings: RawRepresentable {
         raw["maximumBolus"] = maximumBolus
         raw["minimumBGGuard"] = suspendThreshold?.rawValue
         raw["dosingStrategy"] = dosingStrategy.rawValue
+        raw["retrospectiveCorrection"] = retrospectiveCorrection.rawValue
 
         return raw
     }
