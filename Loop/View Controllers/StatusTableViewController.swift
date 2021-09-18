@@ -1356,6 +1356,7 @@ final class StatusTableViewController: LoopChartsTableViewController {
                                           isClosedLoopAllowed: closedLoopStatus.$isClosedLoopAllowed,
                                           supportInfoProvider: deviceManager,
                                           dosingStrategy: deviceManager.loopManager.settings.dosingStrategy,
+                                          retrospectiveCorrection: deviceManager.loopManager.settings.retrospectiveCorrection,
                                           availableSupports: deviceManager.availableSupports,
                                           delegate: self)
         let hostingController = DismissibleHostingController(
@@ -1922,6 +1923,10 @@ extension StatusTableViewController: SettingsViewModelDelegate {
     
     func dosingStrategyChanged(_ strategy: DosingStrategy) {
         self.deviceManager.loopManager.settings.dosingStrategy = strategy
+    }
+    
+    func retrospectiveCorrectionChanged(_ retrospectiveCorrection: RetrospectiveCorrectionOptions) {
+        self.deviceManager.loopManager.settings.retrospectiveCorrection = retrospectiveCorrection
     }
 
     func didSave(therapySetting: TherapySetting, therapySettings: TherapySettings) {

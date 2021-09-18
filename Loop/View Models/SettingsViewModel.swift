@@ -52,6 +52,7 @@ public typealias PumpManagerViewModel = DeviceViewModel<PumpManagerDescriptor>
 public protocol SettingsViewModelDelegate: AnyObject {
     func dosingEnabledChanged(_: Bool)
     func dosingStrategyChanged(_: DosingStrategy)
+    func retrospectiveCorrectionChanged(_: RetrospectiveCorrectionOptions)
     func didSave(therapySetting: TherapySetting, therapySettings: TherapySettings)
     func didTapIssueReport(title: String)
 }
@@ -91,6 +92,12 @@ public class SettingsViewModel: ObservableObject {
             delegate?.dosingStrategyChanged(dosingStrategy)
         }
     }
+    
+    @Published var retrospectiveCorrection: RetrospectiveCorrectionOptions {
+        didSet {
+            delegate?.retrospectiveCorrectionChanged(retrospectiveCorrection)
+        }
+    }
 
     var closedLoopPreference: Bool {
        didSet {
@@ -113,6 +120,7 @@ public class SettingsViewModel: ObservableObject {
                 isClosedLoopAllowed: Published<Bool>.Publisher,
                 supportInfoProvider: SupportInfoProvider,
                 dosingStrategy: DosingStrategy,
+                retrospectiveCorrection: RetrospectiveCorrectionOptions,
                 availableSupports: [SupportUI],
                 delegate: SettingsViewModelDelegate?
     ) {
@@ -128,6 +136,7 @@ public class SettingsViewModel: ObservableObject {
         self.closedLoopPreference = initialDosingEnabled
         self.isClosedLoopAllowed = false
         self.dosingStrategy = dosingStrategy
+        self.retrospectiveCorrection = retrospectiveCorrection
         self.supportInfoProvider = supportInfoProvider
         self.availableSupports = availableSupports
         self.delegate = delegate

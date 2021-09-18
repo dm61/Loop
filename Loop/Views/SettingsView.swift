@@ -44,6 +44,7 @@ public struct SettingsView: View {
                 if viewModel.showWarning {
                     alertPermissionsSection
                 }
+                retrospectiveCorrectionSection
                 if viewModel.pumpManagerSettingsViewModel.isSetUp() {
                     therapySettingsSection
                 }
@@ -104,6 +105,19 @@ extension SettingsView {
         }
     }
 
+    private var retrospectiveCorrectionSection: some View {
+        Section(header: SectionHeader(label: NSLocalizedString("Retrospective Correction", comment: "The title of the Retrospective Correction section in settings"))) {
+            
+            NavigationLink(destination: RetrospectiveCorrectionSelectionView(retrospectiveCorrection: $viewModel.retrospectiveCorrection))
+            {
+                HStack {
+                    Text(viewModel.retrospectiveCorrection.title)
+                }
+            }
+        }
+    }
+
+    
     private var alertPermissionsSection: some View {
         Section {
             NavigationLink(destination:
@@ -417,6 +431,7 @@ public struct SettingsView_Previews: PreviewProvider {
                                           isClosedLoopAllowed: fakeClosedLoopAllowedPublisher.$mockIsClosedLoopAllowed,
                                           supportInfoProvider: MockSupportInfoProvider(),
                                           dosingStrategy: .automaticBolus,
+                                          retrospectiveCorrection: .standardRetrospectiveCorrection,
                                           availableSupports: [],
                                           delegate: nil)
         return Group {
