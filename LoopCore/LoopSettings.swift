@@ -24,12 +24,12 @@ public extension DosingStrategy {
     }
 }
 
-public enum RetrospectiveCorrection: Int, CaseIterable {
+public enum RetrospectiveCorrectionOptions: Int, CaseIterable {
     case standardRetrospectiveCorrection
     case integralRetrospectiveCorrection
 }
 
-public extension RetrospectiveCorrection {
+public extension RetrospectiveCorrectionOptions {
     var title: String {
         switch self {
         case .standardRetrospectiveCorrection:
@@ -92,7 +92,7 @@ public struct LoopSettings: Equatable {
     
     public var dosingStrategy: DosingStrategy = .tempBasalOnly
     
-    public var retrospectiveCorrection: RetrospectiveCorrection = .standardRetrospectiveCorrection
+    public var retrospectiveCorrection: RetrospectiveCorrectionOptions = .standardRetrospectiveCorrection
 
     public var glucoseUnit: HKUnit? {
         return glucoseTargetRangeSchedule?.unit
@@ -315,8 +315,8 @@ extension LoopSettings: RawRepresentable {
             self.dosingStrategy = dosingStrategy
         }
         
-        if let rawRetrospectiveCorrection = rawValue["retrospectiveCorrection"] as? RetrospectiveCorrection.RawValue,
-            let retrospectiveCorrection = RetrospectiveCorrection(rawValue: rawRetrospectiveCorrection) {
+        if let rawRetrospectiveCorrection = rawValue["retrospectiveCorrection"] as? RetrospectiveCorrectionOptions.RawValue,
+            let retrospectiveCorrection = RetrospectiveCorrectionOptions(rawValue: rawRetrospectiveCorrection) {
             self.retrospectiveCorrection = retrospectiveCorrection
         }
     }
