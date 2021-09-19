@@ -110,7 +110,7 @@ final class LoopDataManager: LoopSettingsAlerterDelegate {
         case .standardRetrospectiveCorrection:
             retrospectiveCorrection = StandardRetrospectiveCorrection(effectDuration: LoopSettings.retrospectiveCorrectionEffectDuration)
         case .integralRetrospectiveCorrection:
-            retrospectiveCorrection = StandardRetrospectiveCorrection(effectDuration: LoopSettings.retrospectiveCorrectionEffectDuration)
+            retrospectiveCorrection = IntegralRetrospectiveCorrection(effectDuration: LoopSettings.retrospectiveCorrectionEffectDuration)
         }
 
         loopSettingsAlerter = LoopSettingsAlerter(alertIssuer: alertIssuer)
