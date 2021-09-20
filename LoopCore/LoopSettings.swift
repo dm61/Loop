@@ -11,6 +11,7 @@ import LoopKit
 public enum DosingStrategy: Int, CaseIterable {
     case tempBasalOnly
     case automaticBolus
+    case automaticBolusSuperCorrection
 }
 
 public extension DosingStrategy {
@@ -20,6 +21,8 @@ public extension DosingStrategy {
             return NSLocalizedString("Temp Basal Only", comment: "Title string for temp basal only dosing strategy")
         case .automaticBolus:
             return NSLocalizedString("Automatic Bolus", comment: "Title string for automatic bolus dosing strategy")
+        case .automaticBolusSuperCorrection:
+            return NSLocalizedString("Super Correction", comment: "Title string for automatic bolus with super correction dosing strategy")
         }
     }
 }
