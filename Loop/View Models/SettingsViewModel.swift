@@ -85,6 +85,7 @@ public class SettingsViewModel: ObservableObject {
     let syncPumpSchedule: (() -> PumpManager.SyncSchedule?)?
     let sensitivityOverridesEnabled: Bool
     let supportInfoProvider: SupportInfoProvider
+    let isOnboardingComplete: Bool
 
     @Published var isClosedLoopAllowed: Bool
     @Published var dosingStrategy: DosingStrategy {
@@ -122,6 +123,7 @@ public class SettingsViewModel: ObservableObject {
                 dosingStrategy: DosingStrategy,
                 retrospectiveCorrection: RetrospectiveCorrectionOptions,
                 availableSupports: [SupportUI],
+                isOnboardingComplete: Bool,
                 delegate: SettingsViewModelDelegate?
     ) {
         self.notificationsCriticalAlertPermissionsViewModel = notificationsCriticalAlertPermissionsViewModel
@@ -139,6 +141,7 @@ public class SettingsViewModel: ObservableObject {
         self.retrospectiveCorrection = retrospectiveCorrection
         self.supportInfoProvider = supportInfoProvider
         self.availableSupports = availableSupports
+        self.isOnboardingComplete = isOnboardingComplete
         self.delegate = delegate
 
         // This strangeness ensures the composed ViewModels' (ObservableObjects') changes get reported to this ViewModel (ObservableObject)
