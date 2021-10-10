@@ -2049,10 +2049,9 @@ extension StatusTableViewController: SettingsViewModelDelegate {
         }
     }
     
-    // dm61 need to point to generation of the parameter estimation report
     func didTapParameterEstimationReport(title: String) {
         dismiss(animated: true) {
-            let vc = CommandResponseViewController.generateDiagnosticReport(deviceManager: self.deviceManager)
+            let vc = CommandResponseViewController.generateParameterEstimationReport(deviceManager: self.deviceManager)
             vc.title = title
             self.show(vc, sender: nil)
         }
