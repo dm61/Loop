@@ -20,6 +20,7 @@ struct SupportScreenView: View {
     @Environment(\.dismissAction) private var dismiss
     
     var didTapIssueReport: ((_ title: String) -> Void)?
+    var didTapParameterEstimationReport: ((_ title: String) -> Void)?
     var criticalEventLogExportViewModel: CriticalEventLogExportViewModel
     let availableSupports: [SupportUI]
     let supportInfoProvider: SupportInfoProvider
@@ -33,6 +34,12 @@ struct SupportScreenView: View {
                     self.didTapIssueReport?(NSLocalizedString("Issue Report", comment: "The title text for the issue report menu item"))
                 }) {
                     Text("Issue Report", comment: "The title text for the issue report menu item")
+                }
+                
+                Button(action: {
+                    self.didTapParameterEstimationReport?(NSLocalizedString("Parameter Estimation Report", comment: "The title text for the parameter estimation report menu item"))
+                }) {
+                    Text("Parameter Estimation Report", comment: "The title text for the parameter estimation report menu item")
                 }
                 
                 ForEach(supportMenuItems) {

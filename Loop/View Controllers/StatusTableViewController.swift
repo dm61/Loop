@@ -1994,6 +1994,7 @@ extension StatusTableViewController: BluetoothObserver {
 
 // MARK: - SettingsViewModel delegation
 extension StatusTableViewController: SettingsViewModelDelegate {
+    
     func dosingEnabledChanged(_ value: Bool) {
         deviceManager.loopManager.mutateSettings { settings in
             settings.dosingEnabled = value
@@ -2047,6 +2048,16 @@ extension StatusTableViewController: SettingsViewModelDelegate {
             self.show(vc, sender: nil)
         }
     }
+    
+    // dm61 need to point to generation of the parameter estimation report
+    func didTapParameterEstimationReport(title: String) {
+        dismiss(animated: true) {
+            let vc = CommandResponseViewController.generateDiagnosticReport(deviceManager: self.deviceManager)
+            vc.title = title
+            self.show(vc, sender: nil)
+        }
+    }
+    
 }
 
 // MARK: - Services delegation

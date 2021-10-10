@@ -54,6 +54,7 @@ public protocol SettingsViewModelDelegate: AnyObject {
     func dosingStrategyChanged(_: DosingStrategy)
     func didSave(therapySetting: TherapySetting, therapySettings: TherapySettings)
     func didTapIssueReport(title: String)
+    func didTapParameterEstimationReport(title: String)
 }
 
 public class SettingsViewModel: ObservableObject {
@@ -72,6 +73,10 @@ public class SettingsViewModel: ObservableObject {
     
     var didTapIssueReport: ((String) -> Void)? {
         delegate?.didTapIssueReport
+    }
+    
+    var didTapParameterEstimationReport: ((String) -> Void)? {
+        delegate?.didTapParameterEstimationReport
     }
     
     var availableSupports: [SupportUI]
