@@ -55,6 +55,7 @@ public protocol SettingsViewModelDelegate: AnyObject {
     func retrospectiveCorrectionChanged(_: RetrospectiveCorrectionOptions)
     func didSave(therapySetting: TherapySetting, therapySettings: TherapySettings)
     func didTapIssueReport(title: String)
+    func didTapParameterEstimationReport(title: String)
 }
 
 public class SettingsViewModel: ObservableObject {
@@ -73,6 +74,10 @@ public class SettingsViewModel: ObservableObject {
     
     var didTapIssueReport: ((String) -> Void)? {
         delegate?.didTapIssueReport
+    }
+    
+    var didTapParameterEstimationReport: ((String) -> Void)? {
+        delegate?.didTapParameterEstimationReport
     }
     
     var availableSupports: [SupportUI]

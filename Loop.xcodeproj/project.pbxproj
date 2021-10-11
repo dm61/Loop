@@ -380,6 +380,7 @@
 		89FE21AD24AC57E30033F501 /* Collection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89FE21AC24AC57E30033F501 /* Collection.swift */; };
 		9E1B653A26F7D14E00D5BD24 /* IntegralRetrospectiveCorrection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E1B653926F7D14E00D5BD24 /* IntegralRetrospectiveCorrection.swift */; };
 		9E9C350626F69B2A0077F908 /* RetrospectiveCorrectionSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E9C350526F69B2A0077F908 /* RetrospectiveCorrectionSelectionView.swift */; };
+		9E9C7BDB270A8F1F00896DB4 /* ParameterEstimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E9C7BDA270A8F1F00896DB4 /* ParameterEstimation.swift */; };
 		A90EF53C25DEF06200F32D61 /* PluginManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C16DA84122E8E112008624C2 /* PluginManager.swift */; };
 		A90EF54425DEF0A000F32D61 /* OSLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4374B5EE209D84BE00D17AA8 /* OSLog.swift */; };
 		A91D2A3F26CF0FF80023B075 /* IconTitleSubtitleTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A91D2A3E26CF0FF80023B075 /* IconTitleSubtitleTableViewCell.swift */; };
@@ -1301,6 +1302,7 @@
 		89FE21AC24AC57E30033F501 /* Collection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Collection.swift; sourceTree = "<group>"; };
 		9E1B653926F7D14E00D5BD24 /* IntegralRetrospectiveCorrection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntegralRetrospectiveCorrection.swift; sourceTree = "<group>"; };
 		9E9C350526F69B2A0077F908 /* RetrospectiveCorrectionSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetrospectiveCorrectionSelectionView.swift; sourceTree = "<group>"; };
+		9E9C7BDA270A8F1F00896DB4 /* ParameterEstimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParameterEstimation.swift; sourceTree = "<group>"; };
 		A91D2A3E26CF0FF80023B075 /* IconTitleSubtitleTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconTitleSubtitleTableViewCell.swift; sourceTree = "<group>"; };
 		A91E4C2024F867A700BE9213 /* StoredAlertTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoredAlertTests.swift; sourceTree = "<group>"; };
 		A91E4C2224F86F1000BE9213 /* CriticalEventLogExportManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CriticalEventLogExportManagerTests.swift; sourceTree = "<group>"; };
@@ -1742,6 +1744,7 @@
 				A987CD4824A58A0100439ADC /* ZipArchive.swift */,
 				C19008FD25225D3900721625 /* SimpleBolusCalculator.swift */,
 				C1C660D0252E4DD5009B5C32 /* LoopConstants.swift */,
+				9E9C7BDA270A8F1F00896DB4 /* ParameterEstimation.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -3502,6 +3505,7 @@
 				1D49795824E7289700948F05 /* ServicesViewModel.swift in Sources */,
 				1D4A3E2D2478628500FD601B /* StoredAlert+CoreDataClass.swift in Sources */,
 				892D7C5123B54A15008A9656 /* CarbEntryViewController.swift in Sources */,
+				9E9C7BDB270A8F1F00896DB4 /* ParameterEstimation.swift in Sources */,
 				B4E202302661063E009421B5 /* ClosedLoopStatus.swift in Sources */,
 				A999D40424663CE1004C89D4 /* DoseStore.swift in Sources */,
 				C191D2A125B3ACAA00C26C0B /* DosingStrategySelectionView.swift in Sources */,

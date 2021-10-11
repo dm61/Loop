@@ -302,7 +302,7 @@ extension SettingsView {
     
     private var supportSection: some View {
         Section(header: SectionHeader(label: NSLocalizedString("Support", comment: "The title of the support section in settings"))) {
-            NavigationLink(destination: SupportScreenView(didTapIssueReport: viewModel.didTapIssueReport,
+            NavigationLink(destination: SupportScreenView(didTapIssueReport: viewModel.didTapIssueReport, didTapParameterEstimationReport: viewModel.didTapParameterEstimationReport,
                                                           criticalEventLogExportViewModel: viewModel.criticalEventLogExportViewModel,
                                                           availableSupports: self.viewModel.availableSupports,
                                                           supportInfoProvider: self.viewModel.supportInfoProvider))
