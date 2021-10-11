@@ -2009,7 +2009,9 @@ extension StatusTableViewController: SettingsViewModelDelegate {
     }
     
     func retrospectiveCorrectionChanged(_ retrospectiveCorrection: RetrospectiveCorrectionOptions) {
-        self.deviceManager.loopManager.settings.retrospectiveCorrection = retrospectiveCorrection
+        self.deviceManager.loopManager.mutateSettings { settings in
+        settings.retrospectiveCorrection = retrospectiveCorrection
+        }
     }
 
     func didSave(therapySetting: TherapySetting, therapySettings: TherapySettings) {
